@@ -1,0 +1,35 @@
+generator client {
+  provider             = "Prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EvaluationMetrics {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modelName String
+  modelVersion String?
+  modelType String
+  modelProvider String
+  modelConfig String?
+  systemPrompt String
+  userPrompt String
+  expectedOutput String?
+  relevanceScore Float?
+  accuracyScore Float?
+  clarityScore Float?
+  coherenceScore Float?
+  creativityScore Float?
+  alignmentScore Float?
+  response String?
+  evaluation String?
+  evaluationScore Float?
+  evaluationFeedback String?
+
+}
