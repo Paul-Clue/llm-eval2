@@ -8,28 +8,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model EvaluationMetrics {
+model evaluation_metrics {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  modelName String
-  modelVersion String?
-  modelType String
-  modelProvider String
-  modelConfig String?
-  systemPrompt String
-  userPrompt String
-  expectedOutput String?
-  relevanceScore Float?
-  accuracyScore Float?
-  clarityScore Float?
-  coherenceScore Float?
-  creativityScore Float?
-  alignmentScore Float?
-  response String?
-  evaluation String?
-  evaluationScore Float?
-  evaluationFeedback String?
-
+  modelName String @map("model_name")
+  modelVersion String? @map("model_version")
+  modelType String @map("model_type")
+  modelProvider String @map("model_provider")
+  modelConfig String? @map("model_config")
+  systemPrompt String @map("system_prompt")
+  userPrompt String @map("user_prompt")
+  expectedOutput String? @map("expected_output")
+  relevanceScore Float? @map("relevance_score")
+  accuracyScore Float? @map("accuracy_score")
+  clarityScore Float? @map("clarity_score")
+  coherenceScore Float? @map("coherence_score")
+  creativityScore Float? @map("creativity_score")
+  alignmentScore Float? @map("alignment_score")
+  response String? @map("response")
+  evaluation String? @map("evaluation")
+  evaluationScore Float? @map("evaluation_score")
+  evaluationFeedback String? @map("evaluation_feedback")
 }

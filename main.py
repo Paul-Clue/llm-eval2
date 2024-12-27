@@ -1,5 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
+from Config.Connection import connect_db, disconnect_db
+from Controller import metrics
 
 def init_app():
   app = FastAPI(
@@ -11,16 +13,18 @@ def init_app():
   @app.on_event("startup")
   async def startup():
     print("Starting up server!")
-    # await prisma.connect()
+    await connect_db()
 
   @app.on_event("shutdown")
   async def shutdown():
     print("Shutting down server!")
-    # await prisma.disconnect()
+    await disconnect_db()
 
   @app.get("/")
   async def home():
     return {"message": "Hello World"}
+  
+  app.include_router(metrics.router)
 
   return app
 app = init_app()
