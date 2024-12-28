@@ -2,12 +2,23 @@ import uvicorn
 from fastapi import FastAPI
 from Config.Connection import connect_db, disconnect_db
 from Controller import metrics
+from Controller import groq
+from fastapi.middleware.cors import CORSMiddleware
 
 def init_app():
   app = FastAPI(
     title="LLM Evaluation API",
     description="API for evaluating LLMs",
     version="1.0.0",
+  )
+
+  app.add_middleware(
+    CORSMiddleware,
+    # allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
   )
 
   @app.on_event("startup")
@@ -25,6 +36,7 @@ def init_app():
     return {"message": "Hello World"}
   
   app.include_router(metrics.router)
+  app.include_router(groq.router)
 
   return app
 app = init_app()
