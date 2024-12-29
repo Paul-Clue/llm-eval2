@@ -34,7 +34,9 @@ class MetricsRepository:
         'response': metrics.response,
         'evaluation': metrics.evaluation,
         'evaluationScore': metrics.evaluationScore,
-        'evaluationFeedback': metrics.evaluationFeedback
+        'evaluationFeedback': metrics.evaluationFeedback,
+        'hallucinationScore': metrics.hallucinationScore,
+        'hallucinationFeedback': metrics.hallucinationFeedback
     }
     return await prisma.evaluation_metrics.create(data=data)
   
@@ -58,7 +60,9 @@ class MetricsRepository:
         'response': metrics.response,
         'evaluation': metrics.evaluation,
         'evaluationScore': metrics.evaluationScore,
-        'evaluationFeedback': metrics.evaluationFeedback
+        'evaluationFeedback': metrics.evaluationFeedback,
+        'hallucinationScore': metrics.hallucinationScore,
+        'hallucinationFeedback': metrics.hallucinationFeedback
     }
     return await prisma.evaluation_metrics.update(where={"id": id}, data=data)
   

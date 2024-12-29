@@ -23,8 +23,9 @@ class CreateMetrics(BaseModel):
     response: str
     evaluation: str
     evaluationScore: float
+    hallucinationScore: float
     evaluationFeedback: str
-
+    hallucinationFeedback: str
 class RetrieveMetrics(BaseModel):
     id: str
     modelName: str
@@ -45,4 +46,5 @@ class RetrieveMetrics(BaseModel):
     evaluation: str
     evaluationScore: float
     evaluationFeedback: str
-    
+    hallucinationScore: float
+    hallucinationFeedback: str

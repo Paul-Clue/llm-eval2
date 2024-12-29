@@ -28,4 +28,6 @@ model evaluation_metrics {
   evaluation String? @map("evaluation")
   evaluationScore Float? @map("evaluation_score")
   evaluationFeedback String? @map("evaluation_feedback")
+  hallucinationScore Float? @map("hallucination_score")
+  hallucinationFeedback String? @map("hallucination_feedback")
 }
