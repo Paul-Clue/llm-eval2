@@ -45,6 +45,7 @@ export default function Home() {
         console.error('Error fetching data:', error);
       }
     };
+    console.log('response');
 
     fetchData();
   }, []);
@@ -158,7 +159,7 @@ export default function Home() {
             >
               <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
               <option value='gpt-3.5-turbo'>GPT-3.5</option>
-              <option value='gemini-pro'>Gemini</option>
+              <option value='gemini-1.5-flash'>Gemini</option>
             </select>
           </div>
         </form>

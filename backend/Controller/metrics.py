@@ -10,6 +10,7 @@ router = APIRouter(
 
 @router.get("/", response_model=ResponseSchema, response_model_exclude_none=True)
 async def get_all_metrics():
+    print("get_all_metrics")
     result = await MetricsService.get_all_metrics()
     return ResponseSchema(detail="Metrics fetched successfully", result=result)
 

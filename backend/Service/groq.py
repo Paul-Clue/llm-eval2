@@ -1,5 +1,7 @@
 from groq import Groq
 from openai import AsyncOpenAI
+import google.generativeai as genai
+# from vertexai.preview.generative_models import GenerativeModel
 from os import getenv
 from dotenv import load_dotenv
 from Service.metrics import MetricsService
@@ -17,6 +19,7 @@ import json
 
 load_dotenv()
 groq_key = getenv('GROQ_API_KEY')
+genai.configure(api_key=getenv('GEMINI_API_KEY'))
 
 class GroqService:
     def __init__(self):
@@ -24,71 +27,94 @@ class GroqService:
             api_key=groq_key,
             # base_url="https://api.groq.com/openai/v1"
         )
-        self.openai_client = AsyncOpenAI(  # Add OpenAI client
+        self.openai_client = AsyncOpenAI(
             api_key=getenv('OPENAI_API_KEY')
         )
+        # self.gemini_client = genai.get_model("gemini-1.5-flash-latest")
+        self.gemini_client = genai.GenerativeModel("gemini-1.5-flash")
         self.metrics_service = MetricsService()
 
-    async def generate_and_store(self, userPrompt: str, systemPrompt: str, expectedOutput: str):
-    # async def generate_response(self, prompt: str):
-        try:
-            loop = get_event_loop()
-            response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": systemPrompt},
-                    {"role": "user", "content": userPrompt}
-                ],
-                model="mixtral-8x7b-32768"
-            ))
-            content = response.choices[0].message.content
-            if not content:
-                raise HTTPException(status_code=500, detail="No response from Groq")
+    # async def generate_and_store(self, userPrompt: str, systemPrompt: str, expectedOutput: str):
+    # # async def generate_response(self, prompt: str):
+    #     try:
+    #         loop = get_event_loop()
+    #         response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
+    #             messages=[
+    #                 {"role": "system", "content": systemPrompt},
+    #                 {"role": "user", "content": userPrompt}
+    #             ],
+    #             model="mixtral-8x7b-32768"
+    #         ))
+    #         content = response.choices[0].message.content
+    #         if not content:
+    #             raise HTTPException(status_code=500, detail="No response from Groq")
 
-            metrics = CreateMetrics(
-                modelName="mixtral-8x7b-32768",
-                modelProvider="Groq",
-                systemPrompt=systemPrompt,
-                userPrompt=userPrompt,
-                response=content,
-                modelType="chat",
-                modelVersion="1.0",
-                modelConfig="default",
-                expectedOutput=expectedOutput,
-                relevanceScore=0.0,
-                accuracyScore=0.0,
-                clarityScore=0.0,
-                coherenceScore=0.0,
-                creativityScore=0.0,
-                alignmentScore=0.0,
-                evaluation="",
-                evaluationScore=0.0,
-                evaluationFeedback="",
-                hallucinationScore=0.0,
-                hallucinationFeedback=""
-            )
+    #         metrics = CreateMetrics(
+    #             modelName="mixtral-8x7b-32768",
+    #             modelProvider="Groq",
+    #             systemPrompt=systemPrompt,
+    #             userPrompt=userPrompt,
+    #             response=content,
+    #             modelType="chat",
+    #             modelVersion="1.0",
+    #             modelConfig="default",
+    #             expectedOutput=expectedOutput,
+    #             relevanceScore=0.0,
+    #             accuracyScore=0.0,
+    #             clarityScore=0.0,
+    #             coherenceScore=0.0,
+    #             creativityScore=0.0,
+    #             alignmentScore=0.0,
+    #             evaluation="",
+    #             evaluationScore=0.0,
+    #             evaluationFeedback="",
+    #             hallucinationScore=0.0,
+    #             hallucinationFeedback=""
+    #         )
             
-            await self.metrics_service.create_metrics(metrics)
-            return content
+    #         await self.metrics_service.create_metrics(metrics)
+    #         return content
 
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    #     except Exception as e:
+    #         raise HTTPException(status_code=500, detail=str(e))
     
-    async def evaluate_response(self, userPrompt: str, systemPrompt: str, expectedOutput: str):
+    async def evaluate_response(self, userPrompt: str, systemPrompt: str, expectedOutput: str, model: str):
         # evaluation_prompt = f"""
         # You are a helpful assistant that evaluates the response of a model.
         # You will be given a response and an expected output.
         # You will then evaluate the response and return a score and feedback.
         # """
+        print("Content1: model: ", model)
         try:
             loop = get_event_loop()
-            response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
+            content = None
+            if model == "mixtral-8x7b-32768":
+                print("Content2: ")
+                response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": systemPrompt},
+                        {"role": "user", "content": userPrompt}
+                    ],
+                    model="mixtral-8x7b-32768"
+                ))
+                content = response.choices[0].message.content
+            elif model == "gpt-3.5-turbo":
+                print("Content3: ")
+                response = await self.openai_client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": systemPrompt},
                     {"role": "user", "content": userPrompt}
                 ],
-                model="mixtral-8x7b-32768"
-            ))
-            content = response.choices[0].message.content
+                    model="gpt-3.5-turbo"
+                )   
+                content = response.choices[0].message.content
+            elif model == "gemini-1.5-flash":
+                print("Content4: ")
+                response = await loop.run_in_executor(None, lambda: self.gemini_client.generate_content(
+                    [systemPrompt, userPrompt]
+                ))
+                print("Content5: ", response)
+                content = response.candidates[0].content.parts[0].text
             if not content:
                 raise HTTPException(status_code=500, detail="No response from Groq")
             
@@ -142,19 +168,19 @@ class GroqService:
                 response_format={"type": "json_object"}
             )
             evaluation_content = evaluation_response.choices[0].message.content
-            # print("Evaluation Content: ", evaluation_content)
+            print("Evaluation Content: ", evaluation_content)
             if not evaluation_content:
                 raise HTTPException(status_code=500, detail="No evaluation response from Groq")
             scores = json.loads(evaluation_content)
             print("Evaluation Content: ", scores)
             # print("Evaluation Content: ", scores['evaluationScore'])
             metrics = CreateMetrics(
-                modelName="mixtral-8x7b-32768",
+                modelName=model,
                 modelProvider="Groq",
                 systemPrompt=systemPrompt,
                 userPrompt=userPrompt,
                 response=content,
-                modelType="chat",
+                modelType="llm",
                 modelVersion="1.0",
                 modelConfig="default",
                 expectedOutput=expectedOutput,
@@ -167,8 +193,8 @@ class GroqService:
                 evaluation=scores['evaluation'],
                 evaluationScore=scores['evaluationScore'],
                 evaluationFeedback=scores['evaluationFeedback'],
-                hallucinationScore=0.0,
-                hallucinationFeedback=""
+                hallucinationScore=scores['hallucinationScore'],
+                hallucinationFeedback=scores['hallucinationFeedback']
             )
             
             await self.metrics_service.create_metrics(metrics)
