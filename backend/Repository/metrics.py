@@ -1,5 +1,9 @@
 from Config.Connection import prisma
 from Model.metrics import CreateMetrics, RetrieveMetrics
+from prisma.models import evaluation_metrics
+# from prisma.types import evaluation_metricsCreateInput
+from prisma.types import evaluation_metricsCreateInput, evaluation_metricsUpdateInput
+from typing import Union, Dict
 
 class MetricsRepository:
   @staticmethod
@@ -12,11 +16,51 @@ class MetricsRepository:
   
   @staticmethod
   async def create_metrics(metrics: CreateMetrics):
-    return await prisma.evaluation_metrics.create(data=metrics.model_dump())
+    data: evaluation_metricsCreateInput = {
+        'modelName': metrics.modelName,
+        'modelVersion': metrics.modelVersion,
+        'modelType': metrics.modelType,
+        'modelProvider': metrics.modelProvider,
+        'modelConfig': metrics.modelConfig,
+        'systemPrompt': metrics.systemPrompt,
+        'userPrompt': metrics.userPrompt,
+        'expectedOutput': metrics.expectedOutput,
+        'relevanceScore': metrics.relevanceScore,
+        'accuracyScore': metrics.accuracyScore,
+        'clarityScore': metrics.clarityScore,
+        'coherenceScore': metrics.coherenceScore,
+        'creativityScore': metrics.creativityScore,
+        'alignmentScore': metrics.alignmentScore,
+        'response': metrics.response,
+        'evaluation': metrics.evaluation,
+        'evaluationScore': metrics.evaluationScore,
+        'evaluationFeedback': metrics.evaluationFeedback
+    }
+    return await prisma.evaluation_metrics.create(data=data)
   
   @staticmethod
   async def update_metrics(id: str, metrics: CreateMetrics):
-    return await prisma.evaluation_metrics.update(where={"id": id}, data=metrics.model_dump())
+    data: evaluation_metricsUpdateInput = {
+        'modelName': metrics.modelName,
+        'modelVersion': metrics.modelVersion,
+        'modelType': metrics.modelType,
+        'modelProvider': metrics.modelProvider,
+        'modelConfig': metrics.modelConfig,
+        'systemPrompt': metrics.systemPrompt,
+        'userPrompt': metrics.userPrompt,
+        'expectedOutput': metrics.expectedOutput,
+        'relevanceScore': metrics.relevanceScore,
+        'accuracyScore': metrics.accuracyScore,
+        'clarityScore': metrics.clarityScore,
+        'coherenceScore': metrics.coherenceScore,
+        'creativityScore': metrics.creativityScore,
+        'alignmentScore': metrics.alignmentScore,
+        'response': metrics.response,
+        'evaluation': metrics.evaluation,
+        'evaluationScore': metrics.evaluationScore,
+        'evaluationFeedback': metrics.evaluationFeedback
+    }
+    return await prisma.evaluation_metrics.update(where={"id": id}, data=data)
   
   @staticmethod
   async def delete_metrics(id: str):

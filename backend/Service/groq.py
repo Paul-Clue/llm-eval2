@@ -1,49 +1,32 @@
 from groq import Groq
 from openai import AsyncOpenAI
 from os import getenv
+from dotenv import load_dotenv
 from Service.metrics import MetricsService
 from Model.metrics import CreateMetrics
 from fastapi import HTTPException
 from asyncio import get_event_loop
 
-# groq_api_key = os.getenv('GROQ_API_KEY')
-
-# client = OpenAI(
-#   base_url="https://api.groq.com/openai/v1",
-#   api_key=groq_api_key
-# )
+load_dotenv()
+groq_key = getenv('GROQ_API_KEY')
 
 class GroqService:
     def __init__(self):
         self.client = Groq(
-            api_key=getenv("GROQ_API_KEY"),
-            base_url="https://api.groq.com/v1"
+            api_key=groq_key,
+            # base_url="https://api.groq.com/openai/v1"
         )
-        # self.client = AsyncOpenAI(
-        #     base_url="https://api.groq.com/openai/v1",
-        #     api_key=getenv("GROQ_API_KEY")
-        # )
         self.metrics_service = MetricsService()
 
-    # async def generate_and_store(self, prompt: str):
-    #     try:
-    #         response = self.client.chat.completions.create(
-    #             messages=[{"role": "user", "content": prompt}],
-    #             model="mixtral-8x7b-32768"
-    #         )
-    async def generate_response(self, prompt: str):
+    async def generate_and_store(self, userPrompt: str, systemPrompt: str, expectedOutput: str):
+    # async def generate_response(self, prompt: str):
         try:
-            # response = await self.client.chat.completions.create(
-            #     messages=[{"role": "user", "content": prompt}],
-            #     model="mixtral-8x7b-32768"
-            # )
-            # response = self.client.chat.completions.create(
-            #     messages=[{"role": "user", "content": prompt}],
-            #     model="mixtral-8x7b-32768"
-            # )
             loop = get_event_loop()
             response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": systemPrompt},
+                    {"role": "user", "content": userPrompt}
+                ],
                 model="mixtral-8x7b-32768"
             ))
             content = response.choices[0].message.content
@@ -53,13 +36,13 @@ class GroqService:
             metrics = CreateMetrics(
                 modelName="mixtral-8x7b-32768",
                 modelProvider="Groq",
-                systemPrompt="",
-                userPrompt=prompt,
+                systemPrompt=systemPrompt,
+                userPrompt=userPrompt,
                 response=content,
                 modelType="chat",
                 modelVersion="1.0",
                 modelConfig="default",
-                expectedOutput="",
+                expectedOutput=expectedOutput,
                 relevanceScore=0.0,
                 accuracyScore=0.0,
                 clarityScore=0.0,

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Path, Body
-from backend.schema import ResponseSchema
+from schema import ResponseSchema
 from Service.metrics import MetricsService
 from Model.metrics import CreateMetrics
 

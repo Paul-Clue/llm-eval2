@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 
+class ChatRequest(BaseModel):
+    systemPrompt: str
+    userPrompt: str
+    expectedOutput: str
 class CreateMetrics(BaseModel):
     modelName: str
     modelVersion: str
