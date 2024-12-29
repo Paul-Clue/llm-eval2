@@ -120,7 +120,7 @@ class GroqService:
             "evaluation": "<detailed evaluation text>",
             "evaluationScore": <float 0-1>,
             "evaluationFeedback": "<specific feedback and suggestions>",
-            "hallucinationDetails": "<specific examples of any hallucinations found>"
+            "hallucinationFeedback": "<specific examples of any hallucinations found. If none, return 'None'"
         }}
 
         IMPORTANT: Respond ONLY with the JSON object, no additional text or explanation.

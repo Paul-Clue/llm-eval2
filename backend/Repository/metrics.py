@@ -8,6 +8,7 @@ from typing import Union, Dict
 class MetricsRepository:
   @staticmethod
   async def get_all_metrics():
+    print("Getting all metrics")
     return await prisma.evaluation_metrics.find_many()
 
   @staticmethod

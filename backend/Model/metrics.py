@@ -5,6 +5,7 @@ class ChatRequest(BaseModel):
     systemPrompt: str
     userPrompt: str
     expectedOutput: str
+    model: str
 class CreateMetrics(BaseModel):
     modelName: str
     modelVersion: str
