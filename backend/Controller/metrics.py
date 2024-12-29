@@ -33,3 +33,8 @@ async def update_metrics(id: str = Path(..., alias="id"), metrics: CreateMetrics
 async def delete_metrics(id: str = Path(..., alias="id")):
     await MetricsService.delete_metrics(id)
     return ResponseSchema(detail="Metrics deleted successfully")
+
+@router.get("/filter/{model_name}", response_model=ResponseSchema, response_model_exclude_none=True)
+async def get_metrics_by_model(model_name: str = Path(..., alias="model_name")):
+    result = await MetricsService.get_metrics_by_model(model_name)
+    return ResponseSchema(detail="Metrics filtered successfully", result=result)

@@ -70,3 +70,11 @@ class MetricsRepository:
   @staticmethod
   async def delete_metrics(id: str):
     return await prisma.evaluation_metrics.delete(where={"id": id})
+
+  @staticmethod
+  async def get_metrics_by_model(model_name: str):
+    return await prisma.evaluation_metrics.find_many(
+        where={
+            "modelName": model_name
+        }
+    )

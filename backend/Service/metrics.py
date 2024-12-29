@@ -29,3 +29,7 @@ class MetricsService:
   @staticmethod
   async def delete_metrics(id: str):
     return await MetricsRepository.delete_metrics(id)
+
+  @staticmethod
+  async def get_metrics_by_model(model_name: str):
+    return await MetricsRepository.get_metrics_by_model(model_name)

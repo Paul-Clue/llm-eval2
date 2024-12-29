@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from Config.Connection import connect_db, disconnect_db
 from Controller import metrics
 from Controller import groq
+from Controller import pdf
 from fastapi.middleware.cors import CORSMiddleware
 
 def init_app():
@@ -37,6 +38,7 @@ def init_app():
   
   app.include_router(metrics.router)
   app.include_router(groq.router)
+  app.include_router(pdf.router)
 
   return app
 app = init_app()
