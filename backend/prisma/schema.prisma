@@ -1,0 +1,34 @@
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model evaluation_metrics {
+  id        String   @id @default(cuid())
+  modelName String @map("model_name")
+  modelVersion String? @map("model_version")
+  modelType String @map("model_type")
+  modelProvider String @map("model_provider")
+  modelConfig String? @map("model_config")
+  systemPrompt String @map("system_prompt")
+  userPrompt String @map("user_prompt")
+  expectedOutput String? @map("expected_output")
+  relevanceScore Float? @map("relevance_score")
+  accuracyScore Float? @map("accuracy_score")
+  clarityScore Float? @map("clarity_score")
+  coherenceScore Float? @map("coherence_score")
+  creativityScore Float? @map("creativity_score")
+  alignmentScore Float? @map("alignment_score")
+  response String? @map("response")
+  evaluation String? @map("evaluation")
+  evaluationScore Float? @map("evaluation_score")
+  evaluationFeedback String? @map("evaluation_feedback")
+  hallucinationScore Float? @map("hallucination_score")
+  hallucinationFeedback String? @map("hallucination_feedback")
+  testType String? @map("test_type")
+}
