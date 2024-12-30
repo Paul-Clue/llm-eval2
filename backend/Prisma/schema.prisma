@@ -1,5 +1,5 @@
 generator client {
-  provider             = "Prisma-client-py"
+  provider             = "prisma-client-py"
   recursive_type_depth = 5
 }
 
@@ -30,4 +30,5 @@ model evaluation_metrics {
   evaluationFeedback String? @map("evaluation_feedback")
   hallucinationScore Float? @map("hallucination_score")
   hallucinationFeedback String? @map("hallucination_feedback")
+  testType String? @map("test_type")
 }

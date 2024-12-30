@@ -311,6 +311,7 @@ export default function Home() {
                 onChange={(e) => setTestModel(e.target.value)}
                 className='rounded-md px-2 py-1 text-black'
               >
+                <option value=''>Select Model</option>
                 <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
                 <option value='gpt-3.5-turbo'>GPT-3.5</option>
                 <option value='gemini-1.5-flash'>Gemini</option>
@@ -472,13 +473,18 @@ export default function Home() {
         )}
 
         {/* section: Table */}
-        {evaluationResults.length > 0 && (
-          <div className='w-full max-w-4xl mt-8 ml-[-40%]'>
-            {isLoading && (
-              <div className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        {isLoading && (
+              <div className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'>
                 <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500'></div>
               </div>
             )}
+        {evaluationResults.length > 0 && (
+          <div className='w-full max-w-4xl mt-8 ml-[-40%]'>
+            {/* {isLoading && (
+              <div className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'>
+                <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500'></div>
+              </div>
+            )} */}
             <table className='min-w-full bg-white rounded-lg overflow-x-auto text-black'>
               <thead className='bg-gray-100'>
                 <tr>
@@ -494,7 +500,8 @@ export default function Home() {
                         key === 'evaluation' ||
                         key === 'evaluationFeedback' ||
                         key === 'hallucinationScore' ||
-                        key === 'hallucinationFeedback'
+                        key === 'hallucinationFeedback'||
+                        key === 'testType'
                     )
                     .map((key) => (
                       <th key={key} className='px-4 py-2'>
@@ -519,7 +526,8 @@ export default function Home() {
                           key === 'evaluation' ||
                           key === 'evaluationFeedback' ||
                           key === 'hallucinationScore' ||
-                          key === 'hallucinationFeedback'
+                          key === 'hallucinationFeedback'||
+                          key === 'testType'
                       )
                       .map((key) => (
                         <td

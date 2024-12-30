@@ -35,17 +35,14 @@ class EmbeddingService:
         self.metrics_service = MetricsService()
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         
-        # Initialize Pinecone with new syntax
         pc = Pinecone(api_key=getenv('PINECONE_API_KEY'))
         self.index = pc.Index(getenv('PINECONE_INDEX'))
         self.namespace = getenv('PINECONE_NAMESPACE', 'default')
 
     async def embed_and_store(self, text: str, metadata: dict = {}) -> bool:
         try:
-            print("Creating embedding for text:", text[:100] + "...")  # Log first 100 chars
             embedding = self.model.encode(text)
             
-            print("Storing in Pinecone with metadata:", metadata)
             self.index.upsert(
                 vectors=[
                     {
@@ -64,17 +61,14 @@ class EmbeddingService:
         
     async def search_similar(self, systemPrompt: str, userPrompt: str, expectedOutput: str, model: str, top_k: int = 5):
         try:
-            print("Creating query embedding for:", userPrompt)
             query_embedding = self.model.encode(userPrompt)
             
-            print("Searching Pinecone...")
             search_results = self.index.query(
                 vector=query_embedding.tolist(),
                 top_k=top_k,
                 namespace=self.namespace,
                 include_metadata=True
             )
-            print("Raw search results:", search_results)
 
             if not search_results['matches']:
                 print("No matches found in search results")
@@ -82,20 +76,15 @@ class EmbeddingService:
 
             context = ""
             for match in search_results['matches']:
-                print(f"Processing match metadata: {match['metadata']}")  # Debug log
                 if 'text' not in match['metadata']:
                     print(f"Warning: No text found in metadata for match {match['id']}")
                     continue
                     
                 context += f"\nDocument (score: {match['score']}): {match['metadata']['text']}"
-                print(f"Added match with score {match['score']}")
 
             if not context:
                 print("No text content found in any matches")
                 return None
-
-            # print("SEARCH RESULTS: ", context)
-            # print("SEARCH RESULTS: ", search_results)
 
             new_system_prompt = f"""
             {systemPrompt}
@@ -105,10 +94,10 @@ class EmbeddingService:
 
             Please think step to provide an accurate response.
             """
-
             loop = get_event_loop()
             content = None
             if model == "mixtral-8x7b-32768":
+                print("EMBEDDING SERVICE SEARCH SIMILAR")
                 response = await loop.run_in_executor(None, lambda: self.client.chat.completions.create(
                     messages=[
                         {"role": "system", "content": new_system_prompt},
@@ -126,7 +115,6 @@ class EmbeddingService:
                     model="gpt-3.5-turbo"
                 )   
                 content = response.choices[0].message.content
-                print("GPT-3.5-TURBO RESPONSE: ", content)
             elif model == "gemini-1.5-flash":
                 response = await loop.run_in_executor(None, lambda: self.gemini_client.generate_content(
                     [new_system_prompt, userPrompt]
@@ -189,13 +177,20 @@ class EmbeddingService:
                 raise HTTPException(status_code=500, detail="No evaluation response from Groq")
             scores = json.loads(evaluation_content)
             # print("Evaluation Content: ", scores['evaluationScore'])
+            def get_model_provider(model: str) -> str:
+                providers = {
+                    "mixtral-8x7b-32768": "Groq",
+                    "gpt-3.5-turbo": "OpenAI",
+                    "gemini-1.5-flash": "Gemini"
+                }
+                return providers.get(model, "Unknown")
             metrics = CreateMetrics(
                 modelName=model,
-                modelProvider="Groq",
+                modelProvider=get_model_provider(model),
                 systemPrompt=systemPrompt,
                 userPrompt=userPrompt,
                 response=content,
-                modelType="llm",
+                modelType="chat",
                 modelVersion="1.0",
                 modelConfig="default",
                 expectedOutput=expectedOutput,
@@ -209,11 +204,11 @@ class EmbeddingService:
                 evaluationScore=scores['evaluationScore'],
                 evaluationFeedback=scores['evaluationFeedback'],
                 hallucinationScore=scores['hallucinationScore'],
-                hallucinationFeedback=scores['hallucinationFeedback']
+                hallucinationFeedback=scores['hallucinationFeedback'],
+                testType="document"
             )
             
             await self.metrics_service.create_metrics(metrics)
-            # return content
             return evaluation_content
 
         except Exception as e:

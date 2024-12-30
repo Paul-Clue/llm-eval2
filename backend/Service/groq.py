@@ -117,14 +117,21 @@ class GroqService:
             if not evaluation_content:
                 raise HTTPException(status_code=500, detail="No evaluation response from Groq")
             scores = json.loads(evaluation_content)
-            # print("Evaluation Content: ", scores['evaluationScore'])
+
+            def get_model_provider(model: str) -> str:
+                providers = {
+                    "mixtral-8x7b-32768": "Groq",
+                    "gpt-3.5-turbo": "OpenAI",
+                    "gemini-1.5-flash": "Gemini"
+                }
+                return providers.get(model, "Unknown")
             metrics = CreateMetrics(
                 modelName=model,
-                modelProvider="Groq",
+                modelProvider=get_model_provider(model),
                 systemPrompt=systemPrompt,
                 userPrompt=userPrompt,
                 response=content,
-                modelType="llm",
+                modelType="chat",
                 modelVersion="1.0",
                 modelConfig="default",
                 expectedOutput=expectedOutput,
@@ -138,11 +145,11 @@ class GroqService:
                 evaluationScore=scores['evaluationScore'],
                 evaluationFeedback=scores['evaluationFeedback'],
                 hallucinationScore=scores['hallucinationScore'],
-                hallucinationFeedback=scores['hallucinationFeedback']
+                hallucinationFeedback=scores['hallucinationFeedback'],
+                testType="prompt"
             )
             
             await self.metrics_service.create_metrics(metrics)
-            # return content
             return evaluation_content
 
         except Exception as e:

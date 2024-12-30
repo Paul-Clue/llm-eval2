@@ -16,7 +16,6 @@ embedding_service = EmbeddingService()
 @router.post("/upload", response_model=ResponseSchema)
 async def upload_pdf(file: UploadFile = File(...)):
     try:
-        # Read PDF
         contents = await file.read()
         pdf_file = io.BytesIO(contents)
         
@@ -25,7 +24,6 @@ async def upload_pdf(file: UploadFile = File(...)):
         for page in pdf_reader.pages:
             text += page.extract_text()
         
-        # Create metadata
         doc_id = str(uuid.uuid4())
         metadata = {
             'id': doc_id,
@@ -34,9 +32,6 @@ async def upload_pdf(file: UploadFile = File(...)):
             'text': text
         }
         
-        print(f"Uploading PDF with metadata length: {len(str(metadata))}")
-        
-        # Embed and store
         success = await embedding_service.embed_and_store(text, metadata)
         
         if not success:
@@ -73,7 +68,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 #         )
 @router.post("/search", response_model=ResponseSchema)
 async def search_pdf(request: SearchRequest):
-    # print("PDF Search Request: ", request)
+    print("SEARCH REQUEST: ", request.model)
     try:
         results = await embedding_service.search_similar(
             request.systemPrompt,
