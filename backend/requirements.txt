@@ -9,3 +9,7 @@ sqlalchemy
 vertexai
 psycopg2-binary
 PyPDF2
+huggingface
+langchain
+pinecone-client
+sentence-transformers

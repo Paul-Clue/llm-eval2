@@ -47,6 +47,8 @@ export default function Home() {
   const [expectedOutput, setExpectedOutput] = useState('');
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState('');
+  const [testModel, setTestModel] = useState('');
+  const [documentTest, setDocumentTest] = useState(false);
   // const [filterModel, setFilterModel] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [evaluationResults, setEvaluationResults] = useState<
@@ -57,12 +59,9 @@ export default function Home() {
   const [pdfText, setPdfText] = useState<string>('');
   const [showPdfText, setShowPdfText] = useState(false);
 
-  // const modelFilterOptions = [
-  //   { value: 'all', label: 'All Models' },
-  //   { value: 'mixtral-8x7b-32768', label: 'Mixtral-8x7b' },
-  //   { value: 'gpt-3.5-turbo', label: 'GPT-3.5' },
-  //   { value: 'gemini-1.5-flash', label: 'Gemini' },
-  // ];
+  // section: document search
+  // const [searchQuery, setSearchQuery] = useState<string>('');
+  // const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const fetchMetrics = async (model?: string) => {
     try {
@@ -107,7 +106,7 @@ export default function Home() {
           systemPrompt,
           userPrompt,
           expectedOutput,
-          model: selectedModel,
+          model: testModel,
         }),
       });
       if (!response.ok) {
@@ -121,7 +120,45 @@ export default function Home() {
       const metricsData = await metricsResponse.json();
       setEvaluationResults(metricsData.result);
 
-      // Clear form inputs
+      setSystemPrompt('');
+      setUserPrompt('');
+      setExpectedOutput('');
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/pdf/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          userPrompt,
+          expectedOutput,
+          model: testModel,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('API Error:', error);
+        return;
+      }
+
+      const metricsResponse = await fetch('http://localhost:8000/metrics');
+      if (!metricsResponse.ok)
+        throw new Error('Failed to fetch updated metrics');
+      const metricsData = await metricsResponse.json();
+      setEvaluationResults(metricsData.result);
+
       setSystemPrompt('');
       setUserPrompt('');
       setExpectedOutput('');
@@ -182,72 +219,139 @@ export default function Home() {
 
         {/* section: Form */}
         <form
-          onSubmit={handleSubmit}
-          className='flex flex-col gap-4 text-black'
+          onSubmit={documentTest ? handleSearch : handleSubmit}
+          className='flex flex-col gap-1'
         >
-          <div className='flex flex-row gap-2'>
-            <label className='text-white' htmlFor='systemprompt'>
-              System Prompt
-            </label>
-            <input
-              type='text'
-              id='systemprompt'
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-            />
-            <label className='text-white' htmlFor='userprompt'>
-              User Prompt
-            </label>
-            <input
-              type='text'
-              id='userprompt'
-              value={userPrompt}
-              onChange={(e) => setUserPrompt(e.target.value)}
-            />
-            <label className='text-white' htmlFor='expectedoutput'>
-              Expected Output
-            </label>
-            <input
-              type='text'
-              id='expectedoutput'
-              value={expectedOutput}
-              onChange={(e) => setExpectedOutput(e.target.value)}
-            />
+          <div className='flex flex-row gap-4 items-center mb-8'>
+            <label className='text-white'>Test Type:</label>
+            <div className='flex gap-4'>
+              <label className='flex items-center gap-2 text-white'>
+                <input
+                  type='radio'
+                  name='testType'
+                  value='prompt'
+                  checked={!documentTest}
+                  onChange={() => setDocumentTest(false)}
+                  className='form-radio text-blue-500'
+                />
+                Prompt Test
+              </label>
+
+              <label className='flex items-center gap-2 text-white'>
+                <input
+                  type='radio'
+                  name='testType'
+                  value='document'
+                  checked={documentTest}
+                  onChange={() => setDocumentTest(true)}
+                  className='form-radio text-blue-500'
+                />
+                Document Test
+              </label>
+            </div>
+            {documentTest && (
+              <div className='flex flex-row gap-2 items-center ml-[5%]'>
+                <label className='text-white' htmlFor='pdfUpload'>
+                  Upload PDF:
+                </label>
+                <input
+                  type='file'
+                  id='pdfUpload'
+                  accept='.pdf'
+                  onChange={handleFileUpload}
+                  className='text-white'
+                />
+              </div>
+            )}
+          </div>
+          <div className='flex flex-row gap-4 mb-8'>
+            <div className='flex flex-col gap-2'>
+              <label className='text-white' htmlFor='systemprompt'>
+                System Prompt
+              </label>
+              <input
+                type='text'
+                id='systemprompt'
+                value={systemPrompt}
+                className='text-black caret-blue-500 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                onChange={(e) => setSystemPrompt(e.target.value)}
+              />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <label className='text-white' htmlFor='userprompt'>
+                User Prompt
+              </label>
+              <input
+                type='text'
+                id='userprompt'
+                value={userPrompt}
+                className='text-black caret-blue-500 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                onChange={(e) => setUserPrompt(e.target.value)}
+              />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <label className='text-white' htmlFor='expectedoutput'>
+                Expected Output
+              </label>
+              <input
+                type='text'
+                id='expectedoutput'
+                value={expectedOutput}
+                className='text-black caret-blue-500 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                onChange={(e) => setExpectedOutput(e.target.value)}
+              />
+            </div>
+            <div className='flex flex-col gap-2 mb-2'>
+              <label className='text-white' htmlFor='modelSelect'>
+                Model To Test:
+              </label>
+              <select
+                id='modelSelect'
+                value={testModel}
+                onChange={(e) => setTestModel(e.target.value)}
+                className='rounded-md px-2 py-1 text-black'
+              >
+                <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
+                <option value='gpt-3.5-turbo'>GPT-3.5</option>
+                <option value='gemini-1.5-flash'>Gemini</option>
+              </select>
+            </div>
             <button
-              className='bg-blue-500 text-white p-2 rounded-md'
+              className='bg-blue-500 text-white p-2 rounded-md h-[35px] mt-8'
               type='submit'
               disabled={isLoading}
             >
-              Submit
+              {documentTest ? 'Doc Test' : 'Prompt Test'}
             </button>
           </div>
           <div className='flex flex-row gap-10'>
-          <div className='flex flex-row gap-2 mb-4'>
-            <label className='text-white' htmlFor='modelSelect'>
-              Model:
-            </label>
-            <select
-              id='modelSelect'
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className='rounded-md px-2 py-1'
-            >
-              <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
-              <option value='gpt-3.5-turbo'>GPT-3.5</option>
-              <option value='gemini-1.5-flash'>Gemini</option>
-            </select>
-            </div>
+            {/* <div className='flex flex-row gap-2 mb-4'>
+              <label className='text-white' htmlFor='modelSelect'>
+                Model To Test:
+              </label>
+              <select
+                id='modelSelect'
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className='rounded-md px-2 py-1'
+              >
+                <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
+                <option value='gpt-3.5-turbo'>GPT-3.5</option>
+                <option value='gemini-1.5-flash'>Gemini</option>
+              </select>
+            </div> */}
 
-            <div className='flex flex-row gap-2 mb-4'>
+            <div className='flex flex-col gap-2 mb-4'>
               <label className='text-white' htmlFor='modelFilter'>
                 Filter by Model:
               </label>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className='p-2 border rounded'
+                // className='p-2 border rounded-md text-black'
+                className='text-black caret-blue-500 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               >
-                <option value=''>filter</option>
+                <option value=''>No Filter</option>
                 {models.map((model) => (
                   <option key={model} value={model}>
                     {model}
@@ -255,18 +359,20 @@ export default function Home() {
                 ))}
               </select>
             </div>
-            <div className='flex flex-row gap-2 items-center'>
-              <label className='text-white' htmlFor='pdfUpload'>
-                Upload PDF:
-              </label>
-              <input
-                type='file'
-                id='pdfUpload'
-                accept='.pdf'
-                onChange={handleFileUpload}
-                className='text-white'
-              />
-            </div>
+            {/* {documentTest && (
+              <div className='flex flex-row gap-2 items-center'>
+                <label className='text-white' htmlFor='pdfUpload'>
+                  Upload PDF:
+                </label>
+                <input
+                  type='file'
+                  id='pdfUpload'
+                  accept='.pdf'
+                  onChange={handleFileUpload}
+                  className='text-white'
+                />
+              </div>
+            )} */}
           </div>
         </form>
 
