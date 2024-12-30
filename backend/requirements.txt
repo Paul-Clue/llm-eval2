@@ -5,11 +5,9 @@ google-generativeai
 openai
 groq
 python-dotenv
-sqlalchemy
-vertexai
 psycopg2-binary
 PyPDF2
-huggingface
-langchain
 pinecone-client
 sentence-transformers
+python-multipart
+httpx
