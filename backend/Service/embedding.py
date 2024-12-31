@@ -33,7 +33,8 @@ class EmbeddingService:
         # self.gemini_client = genai.get_model("gemini-1.5-flash-latest")
         self.gemini_client = genai.GenerativeModel("gemini-1.5-flash")
         self.metrics_service = MetricsService()
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        # self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
         
         pc = Pinecone(api_key=getenv('PINECONE_API_KEY'))
         self.index = pc.Index(getenv('PINECONE_INDEX'))
