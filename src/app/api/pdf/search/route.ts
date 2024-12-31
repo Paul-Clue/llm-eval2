@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { EmbeddingService } from '@/utils/embedding'
+import { EmbeddingService } from '../../../../../services/embedding'
 
 export async function POST(req: Request) {
   try {

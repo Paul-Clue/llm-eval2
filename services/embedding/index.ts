@@ -2,7 +2,7 @@ import { Pinecone } from '@pinecone-database/pinecone'
 import { OpenAI } from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { Groq } from 'groq-sdk'
-import { prisma } from './db'
+import { prisma } from '../../utils/db'
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
