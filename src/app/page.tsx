@@ -131,45 +131,45 @@ export default function Home() {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const response = await fetch('http://localhost:8000/api/pdf/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          systemPrompt,
-          userPrompt,
-          expectedOutput,
-          model: testModel,
-          document: documentTest,
-        }),
-      });
+  // const handleSearch = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await fetch('http://localhost:8000/api/pdf/search', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         systemPrompt,
+  //         userPrompt,
+  //         expectedOutput,
+  //         model: testModel,
+  //         document: documentTest,
+  //       }),
+  //     });
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('API Error:', error);
-        return;
-      }
+  //     if (!response.ok) {
+  //       const error = await response.json();
+  //       console.error('API Error:', error);
+  //       return;
+  //     }
 
-      const metricsResponse = await fetch('http://localhost:8000/metrics');
-      if (!metricsResponse.ok)
-        throw new Error('Failed to fetch updated metrics');
-      const metricsData = await metricsResponse.json();
-      setEvaluationResults(metricsData.result);
+  //     const metricsResponse = await fetch('http://localhost:8000/metrics');
+  //     if (!metricsResponse.ok)
+  //       throw new Error('Failed to fetch updated metrics');
+  //     const metricsData = await metricsResponse.json();
+  //     setEvaluationResults(metricsData.result);
 
-      setSystemPrompt('');
-      setUserPrompt('');
-      setExpectedOutput('');
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     setSystemPrompt('');
+  //     setUserPrompt('');
+  //     setExpectedOutput('');
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
@@ -221,7 +221,8 @@ export default function Home() {
 
         {/* section: Form */}
         <form
-          onSubmit={documentTest ? handleSearch : handleSubmit}
+          // onSubmit={documentTest ? handleSearch : handleSubmit}
+          onSubmit={handleSubmit}
           className='flex flex-col gap-1'
         >
           <div className='flex flex-row gap-4 items-center mb-8'>
