@@ -99,7 +99,7 @@ export default function Home() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/groq/chat', {
+      const response = await fetch('http://localhost:8000/api/llm/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,6 +107,7 @@ export default function Home() {
           userPrompt,
           expectedOutput,
           model: testModel,
+          document: documentTest,
         }),
       });
       if (!response.ok) {
@@ -114,7 +115,7 @@ export default function Home() {
         console.error('API Error:', error);
         return;
       }
-      const metricsResponse = await fetch('http://localhost:8000/metrics');
+      const metricsResponse = await fetch('http://localhost:8000/api/llm/metrics');
       if (!metricsResponse.ok)
         throw new Error('Failed to fetch updated metrics');
       const metricsData = await metricsResponse.json();
@@ -134,7 +135,7 @@ export default function Home() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/pdf/search', {
+      const response = await fetch('http://localhost:8000/api/pdf/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,6 +145,7 @@ export default function Home() {
           userPrompt,
           expectedOutput,
           model: testModel,
+          document: documentTest,
         }),
       });
 
@@ -177,7 +179,7 @@ export default function Home() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/pdf/upload', {
+      const response = await fetch('http://localhost:8000/api/pdf/upload', {
         method: 'POST',
         body: formData,
       });

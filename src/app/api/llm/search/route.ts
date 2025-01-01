@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server'
-import { EmbeddingService } from '../../../../../services/embedding'
+// import { EmbeddingService } from '../../../../../services/embedding'
+// import { embedAndStore } from '../../../../../services/embedding'
+import { searchSimilar } from '../../../../../services/embedding'
 
 export async function POST(req: Request) {
   try {
-    const { systemPrompt, userPrompt, expectedOutput, model } = await req.json()
+    const { systemPrompt, userPrompt, expectedOutput, model, document } = await req.json()
     
-    const embeddingService = new EmbeddingService()
-    const results = await embeddingService.searchSimilar(
+    // const embeddingService = new EmbeddingService()
+    // await embedAndStore(
+    //   systemPrompt,
+    //   userPrompt,
+    //   expectedOutput,
+    //   model
+    // )
+    const results = await searchSimilar(
       systemPrompt,
       userPrompt,
       expectedOutput,
-      model
+      model,
+      document,
     )
 
     if (!results) {

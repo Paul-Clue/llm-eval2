@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { EmbeddingService } from '../../../../../services/embedding'
+// import { embedAndStore, searchSimilar } from '../../../../../services/embedding'
+import { embedAndStore } from '../../../../../services/embedding'
 import { v4 as uuidv4 } from 'uuid'
 import pdfParse from 'pdf-parse'
 
@@ -21,9 +22,9 @@ export async function POST(req: Request) {
     const text = await extractTextFromPDF(buffer) // You'll need to implement this
 
     const docId = uuidv4()
-    const embeddingService = new EmbeddingService()
+    // const embeddingService = new EmbeddingService()
     
-    const success = await embeddingService.embedAndStore(text, {
+    const success = await embedAndStore(text, {
       id: docId,
       text,
       type: 'pdf'
