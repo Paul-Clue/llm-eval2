@@ -66,8 +66,8 @@ export default function Home() {
   const fetchMetrics = async (model?: string) => {
     try {
       const url = model
-        ? `http://localhost:8000/metrics/filter/${model}`
-        : 'http://localhost:8000/metrics';
+        ? `http://localhost:8000/api/llm/metrics?model=${model}`
+        : 'http://localhost:8000/api/llm/metrics';
       const response = await fetch(url);
       const data = await response.json();
       setMetrics(data.result);
@@ -79,7 +79,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/metrics');
+        const response = await fetch('http://localhost:8000/api/llm/metrics');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         // setEvaluationResult(data);
@@ -187,7 +187,7 @@ export default function Home() {
       const data = await response.json();
       if (data.result?.text) {
         setPdfText(data.result.text);
-        setShowPdfText(true); // Show the text after upload
+        setShowPdfText(true);
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
@@ -439,7 +439,7 @@ export default function Home() {
 
                         {selectedCell === `metric-${index}-${key}` && (
                           <div
-                            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+                            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
@@ -558,7 +558,7 @@ export default function Home() {
                           {/* Popup on click */}
                           {selectedCell === `${index}-${key}` && (
                             <div
-                              className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+                              className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
