@@ -12,12 +12,15 @@
     "@google/generative-ai": "^0.21.0",
     "@pinecone-database/pinecone": "^4.0.0",
     "@prisma/client": "^6.1.0",
+    "@types/uuid": "^10.0.0",
     "encoding": "^0.1.13",
     "groq-sdk": "^0.9.1",
     "next": "15.1.3",
     "openai": "^4.77.0",
+    "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

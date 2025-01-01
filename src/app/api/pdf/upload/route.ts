@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { EmbeddingService } from '../../../../../services/embedding'
 import { v4 as uuidv4 } from 'uuid'
+import pdfParse from 'pdf-parse'
+
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  const data = await pdfParse(buffer)
+  return data.text
+}
 
 export async function POST(req: Request) {
   try {
