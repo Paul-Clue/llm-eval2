@@ -66,8 +66,8 @@ export default function Home() {
   const fetchMetrics = async (model?: string) => {
     try {
       const url = model
-        ? `http://localhost:8000/api/llm/metrics?model=${model}`
-        : 'http://localhost:8000/api/llm/metrics';
+        ? `http://localhost:3000/api/llm/metrics?model=${model}`
+        : 'http://localhost:3000/api/llm/metrics';
       const response = await fetch(url);
       const data = await response.json();
       setMetrics(data.result);
@@ -79,7 +79,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/llm/metrics');
+        const response = await fetch('http://localhost:3000/api/llm/metrics');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         // setEvaluationResult(data);
@@ -99,7 +99,7 @@ export default function Home() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/llm/search', {
+      const response = await fetch('http://localhost:3000/api/llm/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,7 +115,7 @@ export default function Home() {
         console.error('API Error:', error);
         return;
       }
-      const metricsResponse = await fetch('http://localhost:8000/api/llm/metrics');
+      const metricsResponse = await fetch('http://localhost:3000/api/llm/metrics');
       if (!metricsResponse.ok)
         throw new Error('Failed to fetch updated metrics');
       const metricsData = await metricsResponse.json();
@@ -179,7 +179,7 @@ export default function Home() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/api/pdf/upload', {
+      const response = await fetch('http://localhost:3000/api/pdf/upload', {
         method: 'POST',
         body: formData,
       });
