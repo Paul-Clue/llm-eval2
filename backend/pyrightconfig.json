@@ -1,8 +1,0 @@
-{
-  "venvPath": "/Users/paulc1/miniforge3/envs",
-  "venv": "llm-eval",
-  "pythonVersion": "3.8",
-  "typeCheckingMode": "basic",
-  "extraPaths": ["backend"],
-  "useLibraryCodeForTypes": true
-} 
