@@ -272,24 +272,25 @@ export default function Home() {
         </form>
 
         {selectedModel && (
-          <div className='w-full max-w-4xl mt-8 ml-[-40%]'>
-            <table className='min-w-full bg-white rounded-lg overflow-x-auto text-black'>
+          <div className='w-full max-w-7xl overflow-x-auto mt-8'>
+            <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
               <thead className='bg-gray-100'>
                 <tr>
-                  <th className='px-4 py-2'>Model Name</th>
-                  <th className='px-4 py-2'>Model Type</th>
-                  <th className='px-4 py-2'>Model Provider</th>
-                  <th className='px-4 py-2'>Relevance Score</th>
-                  <th className='px-4 py-2'>Accuracy Score</th>
-                  <th className='px-4 py-2'>Clarity Score</th>
-                  <th className='px-4 py-2'>Coherence Score</th>
-                  <th className='px-4 py-2'>Creativity Score</th>
-                  <th className='px-4 py-2'>Alignment Score</th>
-                  <th className='px-4 py-2'>Evaluation Score</th>
-                  <th className='px-4 py-2'>Evaluation</th>
-                  <th className='px-4 py-2'>Evaluation Feedback</th>
-                  <th className='px-4 py-2'>Hallucination Score</th>
-                  <th className='px-4 py-2'>Hallucination Feedback</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Model Name</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Model Type</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Model Provider</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Relevance Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Accuracy Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Clarity Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Coherence Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Creativity Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Alignment Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation Feedback</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Hallucination Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Hallucination Feedback</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>Test Type</th>
                 </tr>
               </thead>
               <tbody>
@@ -310,10 +311,11 @@ export default function Home() {
                       'evaluationFeedback',
                       'hallucinationScore',
                       'hallucinationFeedback',
+                      'testType',
                     ].map((key) => (
                       <td
                         key={key}
-                        className='border px-4 py-2 max-w-[200px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
+                        className='border px-4 py-2 max-w-[50px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
                         onClick={() =>
                           setSelectedCell(
                             selectedCell === `metric-${index}-${key}`
@@ -373,113 +375,95 @@ export default function Home() {
               </div>
             )}
         {evaluationResults.length > 0 && (
-          <div className='w-full max-w-4xl mt-8 ml-[-40%]'>
-            
-            <table className='min-w-full bg-white rounded-lg overflow-x-auto text-black'>
-              <thead className='bg-gray-100'>
-                <tr>
-                  {Object.keys(evaluationResults[0])
-                    .filter(
-                      (key) =>
-                        typeof evaluationResults[0][
-                          key as keyof EvaluationResponse
-                        ] === 'number' ||
-                        key === 'modelName' ||
-                        key === 'modelProvider' ||
-                        key === 'modelType' ||
-                        key === 'evaluation' ||
-                        key === 'evaluationFeedback' ||
-                        key === 'hallucinationScore' ||
-                        key === 'hallucinationFeedback'||
-                        key === 'testType'
-                    )
-                    .map((key) => (
-                      <th key={key} className='px-4 py-2'>
-                        {key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/^./, (str) => str.toUpperCase())}
-                      </th>
-                    ))}
+          <div className='w-full max-w-7xl overflow-x-auto mt-8'>
+          <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
+            <thead className='bg-gray-100'>
+              <tr>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Model Name</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Model Type</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Model Provider</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Relevance Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Accuracy Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Clarity Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Coherence Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Creativity Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Alignment Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation Feedback</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Hallucination Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Hallucination Feedback</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>Test Type</th>
                 </tr>
               </thead>
               <tbody>
-                {evaluationResults.map((result, index) => (
+                {evaluationResults.map((metric: EvaluationResponse, index: number) => (
                   <tr key={index}>
-                    {Object.keys(result)
-                      .filter(
-                        (key) =>
-                          typeof result[key as keyof EvaluationResponse] ===
-                            'number' ||
-                          key === 'modelName' ||
-                          key === 'modelProvider' ||
-                          key === 'modelType' ||
-                          key === 'evaluation' ||
-                          key === 'evaluationFeedback' ||
-                          key === 'hallucinationScore' ||
-                          key === 'hallucinationFeedback'||
-                          key === 'testType'
-                      )
-                      .map((key) => (
-                        <td
-                          key={key}
-                          className='border px-4 py-2 max-w-[200px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
-                          onClick={() =>
-                            setSelectedCell(
-                              selectedCell === `${index}-${key}`
-                                ? null
-                                : `${index}-${key}`
-                            )
-                          }
-                        >
-                          <span className='truncate block'>
-                            {typeof result[key as keyof EvaluationResponse] ===
-                            'number'
-                              ? (
-                                  result[
-                                    key as keyof EvaluationResponse
-                                  ] as number
-                                ).toFixed(2)
-                              : result[key as keyof EvaluationResponse]}
-                          </span>
+                    {[
+                      'modelName',
+                      'modelType',
+                      'modelProvider',
+                      'relevanceScore',
+                      'accuracyScore',
+                      'clarityScore',
+                      'coherenceScore',
+                      'creativityScore',
+                      'alignmentScore',
+                      'evaluationScore',
+                      'evaluation',
+                      'evaluationFeedback',
+                      'hallucinationScore',
+                      'hallucinationFeedback',
+                      'testType',
+                    ].map((key) => (
+                      <td
+                        key={key}
+                        className='border px-4 py-2 max-w-[50px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
+                        onClick={() =>
+                          setSelectedCell(
+                            selectedCell === `metric-${index}-${key}`
+                              ? null
+                              : `metric-${index}-${key}`
+                          )
+                        }
+                      >
+                        <span className='truncate block'>
+                          {typeof metric[key as keyof EvaluationResponse] === 'number'
+                            ? (metric[key as keyof EvaluationResponse] as number).toFixed(2)
+                            : metric[key as keyof EvaluationResponse]}
+                        </span>
 
-                          {/* Popup on click */}
-                          {selectedCell === `${index}-${key}` && (
-                            <div
-                              className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
-                                <div className='flex justify-between items-start mb-4'>
-                                  <h3 className='font-bold text-lg'>
-                                    {key
-                                      .replace(/([A-Z])/g, ' $1')
-                                      .replace(/^./, (str) =>
-                                        str.toUpperCase()
-                                      )}
-                                  </h3>
-                                  <button
-                                    onClick={() => setSelectedCell(null)}
-                                    className='text-gray-500 hover:text-gray-700'
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                                <div className='whitespace-pre-wrap'>
-                                  {typeof result[
-                                    key as keyof EvaluationResponse
-                                  ] === 'number'
-                                    ? (
-                                        result[
-                                          key as keyof EvaluationResponse
-                                        ] as number
-                                      ).toFixed(2)
-                                    : result[key as keyof EvaluationResponse]}
-                                </div>
+                        {selectedCell === `metric-${index}-${key}` && (
+                          <div
+                            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
+                              <div className='flex justify-between items-start mb-4'>
+                                <h3 className='font-bold text-lg'>
+                                  {key
+                                    .replace(/([A-Z])/g, ' $1')
+                                    .replace(/^./, (str) => str.toUpperCase())}
+                                </h3>
+                                <button
+                                  onClick={() => setSelectedCell(null)}
+                                  className='text-gray-500 hover:text-gray-700'
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                              <div className='whitespace-pre-wrap'>
+                                {typeof metric[key as keyof EvaluationResponse] === 'number'
+                                  ? (
+                                      metric[key as keyof EvaluationResponse] as number
+                                    ).toFixed(2)
+                                  : metric[key as keyof EvaluationResponse]}
                               </div>
                             </div>
-                          )}
-                        </td>
-                      ))}
+                          </div>
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
