@@ -77,9 +77,9 @@ export async function searchSimilar(
         topK: 5,
         includeMetadata: true,
       });
-
+      console.log('searchResults Embedding', searchResults);
       if (!searchResults.matches?.length) {
-        return null;
+        return "no document found.";
       }
 
       // Build context from matches

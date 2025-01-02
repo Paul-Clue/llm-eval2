@@ -110,9 +110,12 @@ export default function Home() {
           document: documentTest,
         }),
       });
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('API Error:', error);
+      // console.log('response', await response.json());
+      const data = await response.json();
+      if (!data.result) {
+        // const error = await response.json();
+        alert(data.detail);
+        console.log('API Error Page:', data.detail);
         return;
       }
       const metricsResponse = await fetch('http://localhost:3000/api/llm/metrics');
@@ -179,7 +182,7 @@ export default function Home() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/api/pdf/upload', {
+      const response = await fetch('http://localhost:3000/api/llm/upload', {
         method: 'POST',
         body: formData,
       });

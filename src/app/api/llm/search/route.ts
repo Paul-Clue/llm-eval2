@@ -22,8 +22,12 @@ export async function POST(req: Request) {
       document,
     )
 
-    if (!results) {
-      throw new Error('No search results found')
+    if (results === "no document found.") {
+      return NextResponse.json({
+        detail: "Please upload a document to search.",
+        result: null
+      })
+      // throw new Error('No search results found')
     }
 
     return NextResponse.json({
