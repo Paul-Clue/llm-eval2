@@ -1,36 +1,31 @@
 import { NextResponse } from 'next/server'
 import { embedAndStore } from '../../../../services/embedding'
 import { v4 as uuidv4 } from 'uuid'
-// import pdfParse from 'pdf-parse'
 import pdf from 'pdf-parse/lib/pdf-parse'
-
-export const config = {
-  api: {
-    bodyParser: false, // Disable the default body parser for form data
-  },
-}
 
 export async function POST(req: Request) {
   console.log("PDF Upload endpoint hit")
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
+    
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    const { text } = await pdf(buffer)
+    const data = await pdf(buffer)
+    const text = data.text
 
     const docId = uuidv4()
-    const success = await embedAndStore(text, {
+    const result = await embedAndStore(text, {
       id: docId,
       text,
       type: 'pdf'
     })
 
-    if (!success) {
-      throw new Error('Failed to store embeddings')
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to store embeddings')
     }
 
     return NextResponse.json({
@@ -41,18 +36,18 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error processing PDF:', error)
     return NextResponse.json({
-      detail: `Error processing PDF: ${error}`,
-      result: null
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     }, { status: 500 })
   }
 }
 
 export async function OPTIONS() {
-  return NextResponse.json({}, {
+  return new NextResponse(null, {
+    status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   })
 }
