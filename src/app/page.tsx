@@ -179,7 +179,7 @@ export default function Home() {
     formData.append('file', file);
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/file', {
+      const response = await fetch('https://llm-eval2.vercel.app/3000/api/file', {
         method: 'POST',
         body: formData,
       });
