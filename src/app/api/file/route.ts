@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server'
-// import { embedAndStore, searchSimilar } from '../../../../../services/embedding'
-import { embedAndStore } from '../../../../../services/embedding'
+import { embedAndStore } from '../../../../services/embedding'
 import { v4 as uuidv4 } from 'uuid'
-import pdfParse from 'pdf-parse'
-
-console.log("IT RAN 1")
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  const data = await pdfParse(buffer)
-  return data.text
-}
+// import pdfParse from 'pdf-parse'
+import pdf from 'pdf-parse/lib/pdf-parse'
 
 export async function POST(req: Request) {
-  console.log("IT RAN 1")
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
@@ -20,11 +13,9 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    const text = await extractTextFromPDF(buffer) // You'll need to implement this
+    const { text } = await pdf(buffer)
 
     const docId = uuidv4()
-    // const embeddingService = new EmbeddingService()
-    
     const success = await embedAndStore(text, {
       id: docId,
       text,
@@ -37,7 +28,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       detail: "PDF processed successfully",
-      result: { id: docId }
+      result: { text, id: docId }
     })
 
   } catch (error) {

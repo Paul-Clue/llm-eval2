@@ -27,7 +27,8 @@ export async function embedAndStore(
 ) {
   try {
     const embedding = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
+      // model: 'text-embedding-3-small',
+      model: 'text-embedding-ada-002',
       input: text,
     });
 
@@ -77,7 +78,7 @@ export async function searchSimilar(
         topK: 5,
         includeMetadata: true,
       });
-      console.log('searchResults Embedding', searchResults);
+
       if (!searchResults.matches?.length) {
         return "no document found.";
       }
