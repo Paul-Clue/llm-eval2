@@ -4,7 +4,14 @@ import { v4 as uuidv4 } from 'uuid'
 // import pdfParse from 'pdf-parse'
 import pdf from 'pdf-parse/lib/pdf-parse'
 
+export const config = {
+  api: {
+    bodyParser: false, // Disable the default body parser for form data
+  },
+}
+
 export async function POST(req: Request) {
+  console.log("PDF Upload endpoint hit")
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
@@ -38,4 +45,14 @@ export async function POST(req: Request) {
       result: null
     }, { status: 500 })
   }
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
 }
