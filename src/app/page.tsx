@@ -177,7 +177,7 @@ export default function Home() {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('file', file);
-
+    setIsLoading(true);
     try {
       const response = await fetch('http://localhost:3000/api/file', {
         method: 'POST',
@@ -191,6 +191,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error uploading PDF:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -477,8 +479,8 @@ export default function Home() {
 
         {/* section: Table */}
         {isLoading && (
-              <div className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'>
-                <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500'></div>
+              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 min-h-screen w-full'>
+                <div className='animate-spin rounded-full h-32 w-32 border-t-8 border-b-8 border-blue-500'></div>
               </div>
             )}
         {evaluationResults.length > 0 && (
