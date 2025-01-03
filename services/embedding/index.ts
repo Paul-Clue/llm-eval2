@@ -64,7 +64,8 @@ export async function searchSimilar(
   expectedOutput: string,
   model: string,
   document: boolean,
-  userId: string
+  userId: string,
+  onStream?: (chunk: string) => Promise<void>
 ) {
   let newSystemPrompt: string | null = null;
   try {
@@ -118,8 +119,16 @@ export async function searchSimilar(
             { role: 'user', content: userPrompt },
           ],
           model: 'mixtral-8x7b-32768',
+          stream: true,
         });
-        content = groqResponse.choices[0]?.message?.content || null;
+        // content = groqResponse.choices[0]?.message?.content || null;
+        for await (const chunk of groqResponse) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text && onStream) {
+            await onStream(text);
+          }
+          content = (content || '') + text;
+        }
         break;
 
       case 'gpt-3.5-turbo':
@@ -129,20 +138,35 @@ export async function searchSimilar(
             { role: 'user', content: userPrompt },
           ],
           model: 'gpt-3.5-turbo',
+          stream: true,
         });
-        content = openaiResponse.choices[0]?.message?.content || null;
+        // content = openaiResponse.choices[0]?.message?.content || null;
+        for await (const chunk of openaiResponse) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text && onStream) {
+            await onStream(text);
+          }
+          content = (content || '') + text;
+        }
         break;
 
       case 'gemini-1.5-flash':
         const geminiModel = genai.getGenerativeModel({
           model: 'gemini-1.5-flash',
         });
-        const geminiResponse = await geminiModel.generateContent([
+        const geminiResponse = await geminiModel.generateContentStream([
           newSystemPrompt,
           userPrompt,
         ]);
-        const geminiResult = await geminiResponse.response;
-        content = geminiResult.text() || null;
+
+        for await (const chunk of geminiResponse.stream) {
+          const text = chunk.text();
+          if (text && onStream) {
+            await onStream(text);
+          }
+          content = (content || '') + text;
+        }
+
         break;
     }
 
@@ -150,7 +174,6 @@ export async function searchSimilar(
       throw new Error('No response from model');
     }
 
-    // const evaluation = await evaluateResponse(systemPrompt, userPrompt, expectedOutput, content, model)
     const evaluation = await evaluateResponse(
       systemPrompt,
       userPrompt,
@@ -160,20 +183,6 @@ export async function searchSimilar(
       document,
       userId
     );
-
-    // await createMetrics({
-    //   modelName: model,
-    //   modelProvider: getModelProvider(model),
-    //   systemPrompt,
-    //   userPrompt,
-    //   response: content,
-    //   modelType: "chat",
-    //   modelVersion: "1.0",
-    //   modelConfig: "default",
-    //   expectedOutput,
-    //   ...evaluation,
-    //   testType: "document"
-    // })
 
     return evaluation;
   } catch (error) {

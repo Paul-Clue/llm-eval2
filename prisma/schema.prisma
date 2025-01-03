@@ -21,6 +21,7 @@ model evaluation_metrics {
   modelType             String  @map("model_type")
   modelProvider         String  @map("model_provider")
   modelConfig           String? @map("model_config")
+  modelResponse         String? @map("model_response")
   systemPrompt          String  @map("system_prompt")
   userPrompt            String  @map("user_prompt")
   expectedOutput        String? @map("expected_output")

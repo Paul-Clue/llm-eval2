@@ -35,6 +35,7 @@ export default function Home() {
     setEvaluationResults,
     // fetchMetrics,
     handleSubmit: submitApi,
+    streamingContent,
   } = useApi();
 
   const {
@@ -49,21 +50,7 @@ export default function Home() {
     fetchMetrics(selectedModel);
   }, [selectedModel]);
 
-  // const [systemPrompt, setSystemPrompt] = useState('');
-  // const [userPrompt, setUserPrompt] = useState('');
-  // const [expectedOutput, setExpectedOutput] = useState('');
-  // const [selectedCell, setSelectedCell] = useState<string | null>(null);
-  // const [selectedModel, setSelectedModel] = useState('');
-  // const [testModel, setTestModel] = useState('');
-  // const [documentTest, setDocumentTest] = useState(false);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [evaluationResults, setEvaluationResults] = useState<
-  //   EvaluationResponse[]
-  // >([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
-  // const models = ['mixtral-8x7b-32768', 'gpt-3.5-turbo', 'gemini-1.5-flash'];
-  // const [pdfText, setPdfText] = useState<string>('');
-  // const [showPdfText, setShowPdfText] = useState(false);
 
   // section: document search
   const fetchMetrics = async (model?: string) => {
@@ -312,6 +299,17 @@ export default function Home() {
           </div>
         </form>
 
+        {streamingContent && (
+          <div className='w-full max-w-7xl mt-8'>
+            <div className='bg-white rounded-lg p-6 text-black'>
+              <h3 className='mb-2'>
+                <span className='font-bold'>{testModel}</span> <br /> Response:
+              </h3>
+              <div className='whitespace-pre-wrap'>{streamingContent}</div>
+            </div>
+          </div>
+        )}
+
         {selectedModel && (
           <div className='w-full max-w-7xl overflow-x-auto mt-8'>
             <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
@@ -320,6 +318,7 @@ export default function Home() {
                   <th className={tableHeadClasses}>Model Name</th>
                   <th className={tableHeadClasses}>Model Type</th>
                   <th className={tableHeadClasses}>Model Provider</th>
+                  <th className={tableHeadClasses}>Model Response</th>
                   <th className={tableHeadClasses}>Relevance Score</th>
                   <th className={tableHeadClasses}>Accuracy Score</th>
                   <th className={tableHeadClasses}>Clarity Score</th>
@@ -341,6 +340,7 @@ export default function Home() {
                       'modelName',
                       'modelType',
                       'modelProvider',
+                      'modelResponse',
                       'relevanceScore',
                       'accuracyScore',
                       'clarityScore',
@@ -423,6 +423,7 @@ export default function Home() {
                   <th className={tableHeadClasses}>Model Name</th>
                   <th className={tableHeadClasses}>Model Type</th>
                   <th className={tableHeadClasses}>Model Provider</th>
+                  <th className={tableHeadClasses}>Model Response</th>
                   <th className={tableHeadClasses}>Relevance Score</th>
                   <th className={tableHeadClasses}>Accuracy Score</th>
                   <th className={tableHeadClasses}>Clarity Score</th>
@@ -445,6 +446,7 @@ export default function Home() {
                         'modelName',
                         'modelType',
                         'modelProvider',
+                        'modelResponse',
                         'relevanceScore',
                         'accuracyScore',
                         'clarityScore',
