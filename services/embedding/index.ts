@@ -63,7 +63,8 @@ export async function searchSimilar(
   userPrompt: string,
   expectedOutput: string,
   model: string,
-  document: boolean
+  document: boolean,
+  userId: string
 ) {
   let newSystemPrompt: string | null = null;
   try {
@@ -157,6 +158,7 @@ export async function searchSimilar(
       content,
       model,
       document,
+      userId
     );
 
     // await createMetrics({
@@ -187,7 +189,8 @@ async function evaluateResponse(
   expectedOutput: string,
   content: string,
   model: string,
-  document: boolean
+  document: boolean,
+  userId: string
 ): Promise<EvaluationResult> {
   const evaluationPrompt = `
       You are a fined tuned llm that evaluates the response of llm models.
@@ -257,7 +260,12 @@ async function evaluateResponse(
     evaluationFeedback: scores.evaluationFeedback,
     hallucinationScore: scores.hallucinationScore,
     hallucinationFeedback: scores.hallucinationFeedback,
-    testType: document ? "document" : "prompt"
+    testType: document ? "document" : "prompt",
+    user: {
+      connect: {
+        id: userId
+      }
+    }
   })
 
   return JSON.parse(evaluationContent);

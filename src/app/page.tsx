@@ -8,6 +8,7 @@ import { useApi } from '../hooks/UseApi';
 import { useUIState } from '../hooks/useUIState';
 
 export default function Home() {
+  const tableHeadClasses = 'w-[80px] px-1 py-1 text-xs';
   const {
     systemPrompt,
     setSystemPrompt,
@@ -332,37 +333,37 @@ export default function Home() {
             <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
               <thead className='bg-gray-100'>
                 <tr>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Model Name</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Model Type</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Model Provider</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Model Name</th>
+                  <th className={tableHeadClasses}>Model Type</th>
+                  <th className={tableHeadClasses}>Model Provider</th>
+                  <th className={tableHeadClasses}>
                     Relevance Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Accuracy Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Clarity Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Accuracy Score</th>
+                  <th className={tableHeadClasses}>Clarity Score</th>
+                  <th className={tableHeadClasses}>
                     Coherence Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Creativity Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Alignment Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Evaluation Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Evaluation</th>
+                  <th className={tableHeadClasses}>
                     Evaluation Feedback
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Hallucination Score
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Hallucination Feedback
                   </th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Test Type</th>
+                  <th className={tableHeadClasses}>Test Type</th>
                 </tr>
               </thead>
               <tbody>
@@ -451,37 +452,37 @@ export default function Home() {
             <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
               <thead className='bg-gray-100'>
                 <tr>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Model Name</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Model Type</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Model Provider</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Model Name</th>
+                  <th className={tableHeadClasses}>Model Type</th>
+                  <th className={tableHeadClasses}>Model Provider</th>
+                  <th className={tableHeadClasses}>
                     Relevance Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Accuracy Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Clarity Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Accuracy Score</th>
+                  <th className={tableHeadClasses}>Clarity Score</th>
+                  <th className={tableHeadClasses}>
                     Coherence Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Creativity Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Alignment Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Evaluation Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>Evaluation</th>
+                  <th className={tableHeadClasses}>
                     Evaluation Feedback
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Hallucination Score
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>
+                  <th className={tableHeadClasses}>
                     Hallucination Feedback
                   </th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Test Type</th>
+                  <th className={tableHeadClasses}>Test Type</th>
                 </tr>
               </thead>
               <tbody>

@@ -17,4 +17,5 @@ export interface EvaluationResult {
   evaluationScore: number
   evaluationFeedback: string
   hallucinationFeedback: string
+  userId: string
 }

@@ -20,4 +20,5 @@ export interface Metrics {
   hallucinationScore?: number
   hallucinationFeedback?: string
   testType?: string
+  userId?: string
 }

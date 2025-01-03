@@ -15,6 +15,7 @@ export interface EvaluationResponse {
     evaluationScore: number;
     evaluationFeedback: string;
     hallucinationDetails: string;
+    userId: string;
   }
   
   export interface Metric {
@@ -35,5 +36,6 @@ export interface EvaluationResponse {
     evaluationFeedback: string;
     hallucinationDetails: string;
     hallucinationFeedback: string;
+    userId: string;
   }
 
