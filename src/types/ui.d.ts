@@ -1,4 +1,4 @@
-interface EvaluationResponse {
+export interface EvaluationResponse {
     id: string;
     modelName: string;
     modelVersion: string;
@@ -17,7 +17,7 @@ interface EvaluationResponse {
     hallucinationDetails: string;
   }
   
-  interface Metric {
+  export interface Metric {
     id: string;
     modelName: string;
     modelVersion: string;
@@ -36,3 +36,4 @@ interface EvaluationResponse {
     hallucinationDetails: string;
     hallucinationFeedback: string;
   }
+

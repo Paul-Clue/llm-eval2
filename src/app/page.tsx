@@ -1,23 +1,65 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+// import { useEffect, FormEvent } from 'react';
+import type { EvaluationResponse, Metric } from '../types/ui.d.ts';
+import { useFormState } from '../hooks/useFormState';
+import { useApi } from '../hooks/UseApi';
+import { useUIState } from '../hooks/useUIState';
 
 export default function Home() {
-  const [systemPrompt, setSystemPrompt] = useState('');
-  const [userPrompt, setUserPrompt] = useState('');
-  const [expectedOutput, setExpectedOutput] = useState('');
-  const [selectedCell, setSelectedCell] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState('');
-  const [testModel, setTestModel] = useState('');
-  const [documentTest, setDocumentTest] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [evaluationResults, setEvaluationResults] = useState<
-    EvaluationResponse[]
-  >([]);
+  const {
+    systemPrompt,
+    setSystemPrompt,
+    userPrompt,
+    setUserPrompt,
+    expectedOutput,
+    setExpectedOutput,
+    testModel,
+    setTestModel,
+    documentTest,
+    setDocumentTest,
+    pdfText,
+    setPdfText,
+    showPdfText,
+    setShowPdfText,
+    resetForm,
+  } = useFormState();
+
+  const {
+    isLoading, setIsLoading,
+    evaluationResults, setEvaluationResults,
+    // fetchMetrics,
+    handleSubmit: submitApi,
+  } = useApi();
+
+  const {
+    selectedCell,
+    setSelectedCell,
+    selectedModel,
+    setSelectedModel,
+    models,
+  } = useUIState();
+
+  useEffect(() => {
+    fetchMetrics(selectedModel);
+  }, [selectedModel]);
+
+  // const [systemPrompt, setSystemPrompt] = useState('');
+  // const [userPrompt, setUserPrompt] = useState('');
+  // const [expectedOutput, setExpectedOutput] = useState('');
+  // const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  // const [selectedModel, setSelectedModel] = useState('');
+  // const [testModel, setTestModel] = useState('');
+  // const [documentTest, setDocumentTest] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [evaluationResults, setEvaluationResults] = useState<
+  //   EvaluationResponse[]
+  // >([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
-  const models = ['mixtral-8x7b-32768', 'gpt-3.5-turbo', 'gemini-1.5-flash'];
-  const [pdfText, setPdfText] = useState<string>('');
-  const [showPdfText, setShowPdfText] = useState(false);
+  // const models = ['mixtral-8x7b-32768', 'gpt-3.5-turbo', 'gemini-1.5-flash'];
+  // const [pdfText, setPdfText] = useState<string>('');
+  // const [showPdfText, setShowPdfText] = useState(false);
 
   // section: document search
   const fetchMetrics = async (model?: string) => {
@@ -52,41 +94,53 @@ export default function Home() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemPrompt,
-          userPrompt,
-          expectedOutput,
-          model: testModel,
-          document: documentTest,
-        }),
-      });
-
-      const data = await response.json();
-      if (!data.result) {
-        alert(data.detail);
-        console.log('API Error Page:', data.detail);
-        return;
-      }
-      const metricsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/metrics`);
-      if (!metricsResponse.ok)
-        throw new Error('Failed to fetch updated metrics');
-      const metricsData = await metricsResponse.json();
-      setEvaluationResults(metricsData.result);
-
-      setSystemPrompt('');
-      setUserPrompt('');
-      setExpectedOutput('');
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    await submitApi({
+      systemPrompt,
+      userPrompt,
+      expectedOutput,
+      testModel,
+      documentTest,
+    });
+    resetForm();
   };
+
+  // const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/search`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         systemPrompt,
+  //         userPrompt,
+  //         expectedOutput,
+  //         model: testModel,
+  //         document: documentTest,
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+  //     if (!data.result) {
+  //       alert(data.detail);
+  //       console.log('API Error Page:', data.detail);
+  //       return;
+  //     }
+  //     const metricsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/metrics`);
+  //     if (!metricsResponse.ok)
+  //       throw new Error('Failed to fetch updated metrics');
+  //     const metricsData = await metricsResponse.json();
+  //     setEvaluationResults(metricsData.result);
+
+  //     setSystemPrompt('');
+  //     setUserPrompt('');
+  //     setExpectedOutput('');
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
@@ -96,10 +150,13 @@ export default function Home() {
     formData.append('file', file);
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/file`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/file`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -249,7 +306,6 @@ export default function Home() {
             </button>
           </div>
           <div className='flex flex-row gap-10'>
-
             <div className='flex flex-col gap-2 mb-4'>
               <label className='text-white' htmlFor='modelFilter'>
                 Filter by Model:
@@ -279,17 +335,33 @@ export default function Home() {
                   <th className='w-[80px] px-1 py-1 text-xs'>Model Name</th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Model Type</th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Model Provider</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Relevance Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Relevance Score
+                  </th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Accuracy Score</th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Clarity Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Coherence Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Creativity Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Alignment Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation Score</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Coherence Score
+                  </th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Creativity Score
+                  </th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Alignment Score
+                  </th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Evaluation Score
+                  </th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Evaluation</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Evaluation Feedback</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Hallucination Score</th>
-                  <th className='w-[80px] px-1 py-1 text-xs'>Hallucination Feedback</th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Evaluation Feedback
+                  </th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Hallucination Score
+                  </th>
+                  <th className='w-[80px] px-1 py-1 text-xs'>
+                    Hallucination Feedback
+                  </th>
                   <th className='w-[80px] px-1 py-1 text-xs'>Test Type</th>
                 </tr>
               </thead>
@@ -370,102 +442,131 @@ export default function Home() {
 
         {/* section: Table */}
         {isLoading && (
-              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 min-h-screen w-full'>
-                <div className='animate-spin rounded-full h-32 w-32 border-t-8 border-b-8 border-blue-500'></div>
-              </div>
-            )}
+          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 min-h-screen w-full'>
+            <div className='animate-spin rounded-full h-32 w-32 border-t-8 border-b-8 border-blue-500'></div>
+          </div>
+        )}
         {evaluationResults.length > 0 && (
           <div className='w-full max-w-7xl overflow-x-auto mt-8'>
-          <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
-            <thead className='bg-gray-100'>
-              <tr>
+            <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
+              <thead className='bg-gray-100'>
+                <tr>
                   <th className='w-[85px] px-1 py-1 text-xs'>Model Name</th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Model Type</th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Model Provider</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Relevance Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Relevance Score
+                  </th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Accuracy Score</th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Clarity Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Coherence Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Creativity Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Alignment Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation Score</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Coherence Score
+                  </th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Creativity Score
+                  </th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Alignment Score
+                  </th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Evaluation Score
+                  </th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Evaluation</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Evaluation Feedback</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Hallucination Score</th>
-                  <th className='w-[85px] px-1 py-1 text-xs'>Hallucination Feedback</th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Evaluation Feedback
+                  </th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Hallucination Score
+                  </th>
+                  <th className='w-[85px] px-1 py-1 text-xs'>
+                    Hallucination Feedback
+                  </th>
                   <th className='w-[85px] px-1 py-1 text-xs'>Test Type</th>
                 </tr>
               </thead>
               <tbody>
-                {evaluationResults.map((metric: EvaluationResponse, index: number) => (
-                  <tr key={index}>
-                    {[
-                      'modelName',
-                      'modelType',
-                      'modelProvider',
-                      'relevanceScore',
-                      'accuracyScore',
-                      'clarityScore',
-                      'coherenceScore',
-                      'creativityScore',
-                      'alignmentScore',
-                      'evaluationScore',
-                      'evaluation',
-                      'evaluationFeedback',
-                      'hallucinationScore',
-                      'hallucinationFeedback',
-                      'testType',
-                    ].map((key) => (
-                      <td
-                        key={key}
-                        className='border px-4 py-2 max-w-[50px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
-                        onClick={() =>
-                          setSelectedCell(
-                            selectedCell === `metric-${index}-${key}`
-                              ? null
-                              : `metric-${index}-${key}`
-                          )
-                        }
-                      >
-                        <span className='truncate block'>
-                          {typeof metric[key as keyof EvaluationResponse] === 'number'
-                            ? (metric[key as keyof EvaluationResponse] as number).toFixed(2)
-                            : metric[key as keyof EvaluationResponse]}
-                        </span>
+                {evaluationResults.map(
+                  (metric: EvaluationResponse, index: number) => (
+                    <tr key={index}>
+                      {[
+                        'modelName',
+                        'modelType',
+                        'modelProvider',
+                        'relevanceScore',
+                        'accuracyScore',
+                        'clarityScore',
+                        'coherenceScore',
+                        'creativityScore',
+                        'alignmentScore',
+                        'evaluationScore',
+                        'evaluation',
+                        'evaluationFeedback',
+                        'hallucinationScore',
+                        'hallucinationFeedback',
+                        'testType',
+                      ].map((key) => (
+                        <td
+                          key={key}
+                          className='border px-4 py-2 max-w-[50px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
+                          onClick={() =>
+                            setSelectedCell(
+                              selectedCell === `metric-${index}-${key}`
+                                ? null
+                                : `metric-${index}-${key}`
+                            )
+                          }
+                        >
+                          <span className='truncate block'>
+                            {typeof metric[key as keyof EvaluationResponse] ===
+                            'number'
+                              ? (
+                                  metric[
+                                    key as keyof EvaluationResponse
+                                  ] as number
+                                ).toFixed(2)
+                              : metric[key as keyof EvaluationResponse]}
+                          </span>
 
-                        {selectedCell === `metric-${index}-${key}` && (
-                          <div
-                            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
-                              <div className='flex justify-between items-start mb-4'>
-                                <h3 className='font-bold text-lg'>
-                                  {key
-                                    .replace(/([A-Z])/g, ' $1')
-                                    .replace(/^./, (str) => str.toUpperCase())}
-                                </h3>
-                                <button
-                                  onClick={() => setSelectedCell(null)}
-                                  className='text-gray-500 hover:text-gray-700'
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                              <div className='whitespace-pre-wrap'>
-                                {typeof metric[key as keyof EvaluationResponse] === 'number'
-                                  ? (
-                                      metric[key as keyof EvaluationResponse] as number
-                                    ).toFixed(2)
-                                  : metric[key as keyof EvaluationResponse]}
+                          {selectedCell === `metric-${index}-${key}` && (
+                            <div
+                              className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
+                                <div className='flex justify-between items-start mb-4'>
+                                  <h3 className='font-bold text-lg'>
+                                    {key
+                                      .replace(/([A-Z])/g, ' $1')
+                                      .replace(/^./, (str) =>
+                                        str.toUpperCase()
+                                      )}
+                                  </h3>
+                                  <button
+                                    onClick={() => setSelectedCell(null)}
+                                    className='text-gray-500 hover:text-gray-700'
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                                <div className='whitespace-pre-wrap'>
+                                  {typeof metric[
+                                    key as keyof EvaluationResponse
+                                  ] === 'number'
+                                    ? (
+                                        metric[
+                                          key as keyof EvaluationResponse
+                                        ] as number
+                                      ).toFixed(2)
+                                    : metric[key as keyof EvaluationResponse]}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
