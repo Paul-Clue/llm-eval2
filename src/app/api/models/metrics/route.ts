@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ message: 'No user id found' });
     }
     
     const { searchParams } = new URL(req.url)

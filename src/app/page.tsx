@@ -6,6 +6,7 @@ import type { EvaluationResponse, Metric } from '../types/ui.d.ts';
 import { useFormState } from '../hooks/useFormState';
 import { useApi } from '../hooks/UseApi';
 import { useUIState } from '../hooks/useUIState';
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function Home() {
   const tableHeadClasses = 'w-[80px] px-1 py-1 text-xs';
@@ -28,8 +29,10 @@ export default function Home() {
   } = useFormState();
 
   const {
-    isLoading, setIsLoading,
-    evaluationResults, setEvaluationResults,
+    isLoading,
+    setIsLoading,
+    evaluationResults,
+    setEvaluationResults,
     // fetchMetrics,
     handleSubmit: submitApi,
   } = useApi();
@@ -79,10 +82,16 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/metrics`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/models/metrics`
+        );
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
-        // setEvaluationResult(data);
+        if (data.message) {
+          console.log('Data:', data);
+          setEvaluationResults([]);
+          return;
+        }
         setEvaluationResults(data.result);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -104,44 +113,6 @@ export default function Home() {
     });
     resetForm();
   };
-
-  // const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/search`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({
-  //         systemPrompt,
-  //         userPrompt,
-  //         expectedOutput,
-  //         model: testModel,
-  //         document: documentTest,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-  //     if (!data.result) {
-  //       alert(data.detail);
-  //       console.log('API Error Page:', data.detail);
-  //       return;
-  //     }
-  //     const metricsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/models/metrics`);
-  //     if (!metricsResponse.ok)
-  //       throw new Error('Failed to fetch updated metrics');
-  //     const metricsData = await metricsResponse.json();
-  //     setEvaluationResults(metricsData.result);
-
-  //     setSystemPrompt('');
-  //     setUserPrompt('');
-  //     setExpectedOutput('');
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
@@ -178,6 +149,19 @@ export default function Home() {
   return (
     <div className='flex flex-col justify-center items-center min-h-screen bg-[#252528] p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] overflow-x-auto'>
       <div className='flex flex-col gap-4 items-center justify-center mt-[-4%]'>
+        <div className='flex flex-row w-full justify-end gap-4'>
+          <SignedOut>
+            {/* <SignInButton /> */}
+            <SignInButton mode='modal'>
+              <button className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md'>
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
         <h1 className='text-white text-5xl font-bold mb-4'>LLM Evaluation</h1>
 
         {/* section: PDF Upload */}
@@ -336,33 +320,17 @@ export default function Home() {
                   <th className={tableHeadClasses}>Model Name</th>
                   <th className={tableHeadClasses}>Model Type</th>
                   <th className={tableHeadClasses}>Model Provider</th>
-                  <th className={tableHeadClasses}>
-                    Relevance Score
-                  </th>
+                  <th className={tableHeadClasses}>Relevance Score</th>
                   <th className={tableHeadClasses}>Accuracy Score</th>
                   <th className={tableHeadClasses}>Clarity Score</th>
-                  <th className={tableHeadClasses}>
-                    Coherence Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Creativity Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Alignment Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Evaluation Score
-                  </th>
+                  <th className={tableHeadClasses}>Coherence Score</th>
+                  <th className={tableHeadClasses}>Creativity Score</th>
+                  <th className={tableHeadClasses}>Alignment Score</th>
+                  <th className={tableHeadClasses}>Evaluation Score</th>
                   <th className={tableHeadClasses}>Evaluation</th>
-                  <th className={tableHeadClasses}>
-                    Evaluation Feedback
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Hallucination Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Hallucination Feedback
-                  </th>
+                  <th className={tableHeadClasses}>Evaluation Feedback</th>
+                  <th className={tableHeadClasses}>Hallucination Score</th>
+                  <th className={tableHeadClasses}>Hallucination Feedback</th>
                   <th className={tableHeadClasses}>Test Type</th>
                 </tr>
               </thead>
@@ -455,33 +423,17 @@ export default function Home() {
                   <th className={tableHeadClasses}>Model Name</th>
                   <th className={tableHeadClasses}>Model Type</th>
                   <th className={tableHeadClasses}>Model Provider</th>
-                  <th className={tableHeadClasses}>
-                    Relevance Score
-                  </th>
+                  <th className={tableHeadClasses}>Relevance Score</th>
                   <th className={tableHeadClasses}>Accuracy Score</th>
                   <th className={tableHeadClasses}>Clarity Score</th>
-                  <th className={tableHeadClasses}>
-                    Coherence Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Creativity Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Alignment Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Evaluation Score
-                  </th>
+                  <th className={tableHeadClasses}>Coherence Score</th>
+                  <th className={tableHeadClasses}>Creativity Score</th>
+                  <th className={tableHeadClasses}>Alignment Score</th>
+                  <th className={tableHeadClasses}>Evaluation Score</th>
                   <th className={tableHeadClasses}>Evaluation</th>
-                  <th className={tableHeadClasses}>
-                    Evaluation Feedback
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Hallucination Score
-                  </th>
-                  <th className={tableHeadClasses}>
-                    Hallucination Feedback
-                  </th>
+                  <th className={tableHeadClasses}>Evaluation Feedback</th>
+                  <th className={tableHeadClasses}>Hallucination Score</th>
+                  <th className={tableHeadClasses}>Hallucination Feedback</th>
                   <th className={tableHeadClasses}>Test Type</th>
                 </tr>
               </thead>
