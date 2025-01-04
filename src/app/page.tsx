@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
-// import { useEffect, FormEvent } from 'react';
 import type { EvaluationResponse, Metric } from '../types/ui.d.ts';
 import { useFormState } from '../hooks/useFormState';
 import { useApi } from '../hooks/UseApi';
@@ -33,7 +32,6 @@ export default function Home() {
     setIsLoading,
     evaluationResults,
     setEvaluationResults,
-    // fetchMetrics,
     handleSubmit: submitApi,
     streamingContent,
   } = useApi();
@@ -75,7 +73,6 @@ export default function Home() {
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         if (data.message) {
-          console.log('Data:', data);
           setEvaluationResults([]);
           return;
         }
@@ -91,14 +88,21 @@ export default function Home() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await submitApi({
-      systemPrompt,
-      userPrompt,
-      expectedOutput,
-      testModel,
-      documentTest,
-    });
-    resetForm();
+    console.log('Form submitted');
+    
+    try {
+      await submitApi({
+        systemPrompt,
+        userPrompt,
+        expectedOutput,
+        model:testModel,
+        documentTest,
+      });
+      console.log('API call completed');
+      resetForm();
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +177,6 @@ export default function Home() {
 
         {/* section: Form */}
         <form
-          // onSubmit={documentTest ? handleSearch : handleSubmit}
           onSubmit={handleSubmit}
           className='flex flex-col gap-1'
         >
@@ -264,6 +267,7 @@ export default function Home() {
                 className='rounded-md px-2 py-1 text-black'
               >
                 <option value=''>Select Model</option>
+                <option value='all'>All Models</option>
                 <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
                 <option value='gpt-3.5-turbo'>GPT-3.5</option>
                 <option value='gemini-1.5-flash'>Gemini</option>
@@ -285,7 +289,6 @@ export default function Home() {
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                // className='p-2 border rounded-md text-black'
                 className='text-black caret-blue-500 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               >
                 <option value=''>No Filter</option>
@@ -299,14 +302,57 @@ export default function Home() {
           </div>
         </form>
 
-        {streamingContent && (
+        {testModel !== 'all' && streamingContent.single ? (
+          // Single model view
           <div className='w-full max-w-7xl mt-8'>
-            <div className='bg-white rounded-lg p-6 text-black'>
+            <div className='bg-white rounded-lg p-6 text-black text-xs'>
               <h3 className='mb-2'>
                 <span className='font-bold'>{testModel}</span> <br /> Response:
               </h3>
-              <div className='whitespace-pre-wrap'>{streamingContent}</div>
+              <div className='whitespace-pre-wrap'>
+                {streamingContent.single}
+              </div>
             </div>
+          </div>
+        ) : (
+          <div className='flex flex-row gap-4 justify-between w-full max-w-7xl mt-8'>
+            {streamingContent.mixtral && (
+              <div className='w-1/3 '>
+                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+                  <h3 className='mb-2'>
+                    <span className='font-bold'>Mixtral-8x7b</span> <br />{' '}
+                    Response:
+                  </h3>
+                  <div className='whitespace-pre-wrap'>
+                    {streamingContent.mixtral}
+                  </div>
+                </div>
+              </div>
+            )}
+            {streamingContent.gpt && (
+              <div className='w-1/3'>
+                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black h-full text-xs'>
+                  <h3 className='mb-2'>
+                    <span className='font-bold'>GPT-3.5</span> <br /> Response:
+                  </h3>
+                  <div className='whitespace-pre-wrap'>
+                    {streamingContent.gpt}
+                  </div>
+                </div>
+              </div>
+            )}
+            {streamingContent.gemini && (
+              <div className='w-1/3'>
+                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+                  <h3 className='mb-2'>
+                    <span className='font-bold'>Gemini</span> <br /> Response:
+                  </h3>
+                  <div className='whitespace-pre-wrap'>
+                    {streamingContent.gemini}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

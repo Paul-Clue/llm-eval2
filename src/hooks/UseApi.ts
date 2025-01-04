@@ -2,11 +2,17 @@ import { useState } from 'react';
 import type { EvaluationResponse } from '../types/ui';
 
 export function useApi() {
+  
   const [isLoading, setIsLoading] = useState(false);
   const [evaluationResults, setEvaluationResults] = useState<
     EvaluationResponse[]
   >([]);
-  const [streamingContent, setStreamingContent] = useState<string>('');
+  const [streamingContent, setStreamingContent] = useState({
+    mixtral: '',
+    gpt: '',
+    gemini: '',
+    single: ''
+  });
 
   const fetchMetrics = async (model?: string) => {
     try {
@@ -25,67 +31,86 @@ export function useApi() {
     systemPrompt: string;
     userPrompt: string;
     expectedOutput: string;
-    testModel: string;
+    model: string;
     documentTest: boolean;
   }) => {
     setIsLoading(true);
-    setStreamingContent('');
-    let finalResults = null;
-
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    setStreamingContent({
+      mixtral: '',
+      gpt: '',
+      gemini: '',
+      single: ''
+    });
 
     try {
+      console.log('Form data:', formData);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/models/search`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemPrompt: formData.systemPrompt,
-            userPrompt: formData.userPrompt,
-            expectedOutput: formData.expectedOutput,
-            model: formData.testModel,
-            document: formData.documentTest,
-          }),
+          body: JSON.stringify(formData),
         }
       );
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Error response:', errorData);
+        throw new Error(errorData);
+      }
 
       const reader = response.body?.getReader();
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      if (!reader) throw new Error('No reader available');
 
-          const text = new TextDecoder().decode(value);
-          if (text.includes('FINAL_RESULTS:')) {
-            const [content, results] = text.split('FINAL_RESULTS:');
-            setStreamingContent((prev) => prev + content);
-            finalResults = JSON.parse(results);
-          } else {
-            setStreamingContent((prev) => prev + text);
-            await delay(50);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        const text = new TextDecoder().decode(value);
+        
+        if (formData.model === 'all') {
+          if (text.includes('MixtralContent')) {
+            const content = text.replace('MixtralContent', '');
+            setStreamingContent(prev => ({
+              ...prev,
+              mixtral: prev.mixtral + content
+            }));
+          } else if (text.includes('GPTContent')) {
+            const content = text.replace('GPTContent', '');
+            setStreamingContent(prev => ({
+              ...prev,
+              gpt: prev.gpt + content
+            }));
+          } else if (text.includes('GeminiContent')) {
+            const content = text.replace('GeminiContent', '');
+            setStreamingContent(prev => ({
+              ...prev,
+              gemini: prev.gemini + content
+            }));
+          }
+        } else {
+          setStreamingContent(prev => ({
+            ...prev,
+            single: prev.single + text
+          }));
+        }
+
+        if (text.includes('FINAL_RESULTS:')) {
+          const [, resultsStr] = text.split('FINAL_RESULTS:');
+          const { result } = JSON.parse(resultsStr);
+          if (result) {
+            await fetchMetrics();
           }
         }
       }
-
-      //   const data = await response.json();
-      //   if (!data.result) {
-      //     alert(data.detail);
-      //     return;
-      //   }
-      //   await fetchMetrics();
-      // } catch (error) {
-      //   console.error('Error:', error);
-      // } finally {
-      //   setIsLoading(false);
-      // }
-      if (finalResults?.result) {
-        await fetchMetrics();
-      } else {
-        alert('No results received');
-      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in handleSubmit:', error);
+      setStreamingContent(prev => ({
+        ...prev,
+        single: `Error: ${error}`
+      }));
     } finally {
       setIsLoading(false);
     }

@@ -3,7 +3,7 @@ export interface Metrics {
   modelProvider: string
   systemPrompt: string
   userPrompt: string
-  response: string
+  modelResponse: string
   modelType: string
   modelVersion: string
   modelConfig: string

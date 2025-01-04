@@ -2,9 +2,10 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAI } from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Groq } from 'groq-sdk';
-// import { prisma } from '../../utils/db'
 import { DocumentMetadata, EvaluationResult } from './types';
-import { createMetrics } from '../metrics'
+import { createMetrics } from '../metrics';
+
+const STREAM_DELAY = 30;
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
@@ -68,32 +69,40 @@ export async function searchSimilar(
   onStream?: (chunk: string) => Promise<void>
 ) {
   let newSystemPrompt: string | null = null;
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
   try {
-    if (document) {
-      const queryEmbedding = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: userPrompt,
-      });
+    if (model === 'all') {
+      let MixtralContent: string | null = null;
+      let GPTContent: string | null = null;
+      let GeminiContent: string | null = null;
 
-      const searchResults = await index.query({
-        vector: queryEmbedding.data[0].embedding,
-        topK: 5,
-        includeMetadata: true,
-      });
+      if (document) {
+        const queryEmbedding = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: userPrompt,
+        });
 
-      if (!searchResults.matches?.length) {
-        return "no document found.";
-      }
+        const searchResults = await index.query({
+          vector: queryEmbedding.data[0].embedding,
+          topK: 5,
+          includeMetadata: true,
+        });
 
-      // Build context from matches
-      const context = searchResults.matches
-        .map(
-          (match) => `Document (score: ${match.score}): ${match.metadata?.text}`
-        )
-        .join('\n');
+        if (!searchResults.matches?.length) {
+          return 'no document found.';
+        }
 
-      // Generate response based on model
-      newSystemPrompt = `
+        // Build context from matches
+        const context = searchResults.matches
+          .map(
+            (match) =>
+              `Document (score: ${match.score}): ${match.metadata?.text}`
+          )
+          .join('\n');
+
+        // Generate response based on model
+        newSystemPrompt = `
       ${systemPrompt}
       
       Please use the following context to inform your response:
@@ -101,90 +110,273 @@ export async function searchSimilar(
       
       Please think step by step to provide an accurate response. If extra information is given by the llm that is in the context, let it be known in your response.
     `;
-    } else {
-      newSystemPrompt = `
+      } else {
+        newSystemPrompt = `
       ${systemPrompt}
 
       Please think step by step to provide an accurate response.
       `;
-    }
+      }
 
-    let content: string | null = null;
-
-    switch (model) {
-      case 'mixtral-8x7b-32768':
-        const groqResponse = await groq.chat.completions.create({
-          messages: [
-            { role: 'system', content: newSystemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          model: 'mixtral-8x7b-32768',
-          stream: true,
-        });
-        // content = groqResponse.choices[0]?.message?.content || null;
-        for await (const chunk of groqResponse) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text && onStream) {
-            await onStream(text);
-          }
-          content = (content || '') + text;
+      const groqResponse = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: newSystemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: 'mixtral-8x7b-32768',
+        stream: true,
+      });
+      // content = groqResponse.choices[0]?.message?.content || null;
+      for await (const chunk of groqResponse) {
+        const text = 'MixtralContent' + chunk.choices[0]?.delta?.content || '';
+        if (text && onStream) {
+          await delay(STREAM_DELAY);
+          await onStream(text);
         }
-        break;
+        const mixtralText = text.replace('MixtralContent', '');
+        MixtralContent = (MixtralContent || '') + mixtralText;
+      }
 
-      case 'gpt-3.5-turbo':
-        const openaiResponse = await openai.chat.completions.create({
-          messages: [
-            { role: 'system', content: newSystemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          model: 'gpt-3.5-turbo',
-          stream: true,
-        });
-        // content = openaiResponse.choices[0]?.message?.content || null;
-        for await (const chunk of openaiResponse) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text && onStream) {
-            await onStream(text);
-          }
-          content = (content || '') + text;
+      const openaiResponse = await openai.chat.completions.create({
+        messages: [
+          { role: 'system', content: newSystemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: 'gpt-3.5-turbo',
+        stream: true,
+      });
+      // content = openaiResponse.choices[0]?.message?.content || null;
+      for await (const chunk of openaiResponse) {
+        const text = 'GPTContent' + chunk.choices[0]?.delta?.content || '';
+        // if (text && onStream) {
+        //   await onStream(text);
+        // }
+        if (text && onStream) {
+          await delay(STREAM_DELAY);
+          await onStream(text);
         }
-        break;
+        const gptText = text.replace('GPTContent', '');
+        GPTContent = (GPTContent || '') + gptText;
+      }
 
-      case 'gemini-1.5-flash':
-        const geminiModel = genai.getGenerativeModel({
-          model: 'gemini-1.5-flash',
-        });
-        const geminiResponse = await geminiModel.generateContentStream([
-          newSystemPrompt,
+      const geminiModel = genai.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+      });
+      const geminiResponse = await geminiModel.generateContentStream([
+        newSystemPrompt,
+        userPrompt,
+      ]);
+
+      for await (const chunk of geminiResponse.stream) {
+        const text = 'GeminiContent' + chunk.text();
+        if (text && onStream) {
+          await delay(STREAM_DELAY);
+          await onStream(text);
+        }
+        const geminiText = text.replace('GeminiContent', '');
+        GeminiContent = (GeminiContent || '') + geminiText;
+      }
+
+      if (!MixtralContent || !GPTContent || !GeminiContent) {
+        console.log('ALL MODELS: No response from model');
+      }
+
+      if (MixtralContent) {
+        await evaluateResponse(
+          systemPrompt,
           userPrompt,
-        ]);
+          expectedOutput,
+          MixtralContent,
+          'mixtral-8x7b-32768',
+          document,
+          userId
+        );
+      }
+      if (GPTContent) {
+        await evaluateResponse(
+          systemPrompt,
+          userPrompt,
+          expectedOutput,
+          GPTContent,
+          'gpt-3.5-turbo',
+          document,
+          userId
+        );
+      }
+      if (GeminiContent) {
+        await evaluateResponse(
+          systemPrompt,
+          userPrompt,
+          expectedOutput,
+          GeminiContent,
+          'gemini-1.5-flash',
+          document,
+          userId
+        );
+      }
 
-        for await (const chunk of geminiResponse.stream) {
-          const text = chunk.text();
-          if (text && onStream) {
-            await onStream(text);
-          }
-          content = (content || '') + text;
+      return {};
+    } else {
+      if (document) {
+        const queryEmbedding = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: userPrompt,
+        });
+
+        const searchResults = await index.query({
+          vector: queryEmbedding.data[0].embedding,
+          topK: 5,
+          includeMetadata: true,
+        });
+
+        if (!searchResults.matches?.length) {
+          return 'no document found.';
         }
 
-        break;
+        const context = searchResults.matches
+          .map(
+            (match) =>
+              `Document (score: ${match.score}): ${match.metadata?.text}`
+          )
+          .join('\n');
+
+        newSystemPrompt = `
+      ${systemPrompt}
+      
+      Please use the following context to inform your response:
+      ${context}
+      
+      Please think step by step to provide an accurate response. If extra information is given by the llm that is in the context, let it be known in your response.
+    `;
+      } else {
+        newSystemPrompt = `
+      ${systemPrompt}
+
+      Please think step by step to provide an accurate response.
+      `;
+      }
+
+      let content: string | null = null;
+
+      switch (model) {
+        case 'mixtral-8x7b-32768':
+          try {
+            const groqResponse = await groq.chat.completions.create({
+              messages: [
+                { role: 'system', content: newSystemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              model: 'mixtral-8x7b-32768',
+              stream: true,
+            });
+
+            for await (const chunk of groqResponse) {
+              const text = chunk.choices[0]?.delta?.content || '';
+              if (text && onStream) {
+                await delay(STREAM_DELAY);
+                await onStream(text);
+              }
+              content = (content || '') + text;
+            }
+
+            if (!content) {
+              console.error('No content received from Mixtral model');
+              content = 'Model failed to generate a response.';
+            }
+          } catch (error) {
+            console.error('Mixtral model error:', error);
+            throw error;
+          }
+          break;
+
+        case 'gpt-3.5-turbo':
+          try {
+            const openaiResponse = await openai.chat.completions.create({
+              messages: [
+                { role: 'system', content: newSystemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              model: 'gpt-3.5-turbo',
+              stream: true,
+            });
+
+            for await (const chunk of openaiResponse) {
+              const text = chunk.choices[0]?.delta?.content || '';
+              if (text && onStream) {
+                await onStream(text);
+              }
+              content = (content || '') + text;
+            }
+
+            if (!content) {
+              console.error('No content received from GPT-3.5-turbo model');
+              content = 'Model failed to generate a response.';
+            }
+          } catch (error) {
+            console.error('GPT-3.5-turbo model error:', error);
+            throw error;
+          }
+          break;
+
+        case 'gemini-1.5-flash':
+          try {
+            const geminiModel = genai.getGenerativeModel({
+              model: 'gemini-1.5-flash',
+            });
+            const geminiResponse = await geminiModel.generateContentStream([
+              newSystemPrompt,
+              userPrompt,
+            ]);
+
+            for await (const chunk of geminiResponse.stream) {
+              const text = chunk.text();
+              if (text && onStream) {
+                await onStream(text);
+              }
+              content = (content || '') + text;
+            }
+
+            if (!content) {
+              console.error('No content received from Gemini-1.5-flash model');
+              content = 'Model failed to generate a response.';
+            }
+          } catch (error) {
+            console.error('Gemini-1.5-flash model error:', error);
+            throw error;
+          }
+
+          break;
+      }
+
+      if (!content) {
+        console.error('No content received from any model');
+        content = 'All models failed to generate a response.';
+
+        const evaluation = await evaluateResponse(
+          systemPrompt,
+          userPrompt,
+          expectedOutput,
+          content,
+          model,
+          document,
+          userId
+        );
+
+        return evaluation;
+      }
+
+      const evaluation = await evaluateResponse(
+        systemPrompt,
+        userPrompt,
+        expectedOutput,
+        content,
+        model,
+        document,
+        userId
+      );
+
+      return evaluation;
     }
-
-    if (!content) {
-      throw new Error('No response from model');
-    }
-
-    const evaluation = await evaluateResponse(
-      systemPrompt,
-      userPrompt,
-      expectedOutput,
-      content,
-      model,
-      document,
-      userId
-    );
-
-    return evaluation;
   } catch (error) {
     console.error('Error in searchSimilar:', error);
     throw error;
@@ -246,17 +438,17 @@ async function evaluateResponse(
   if (!evaluationContent) {
     throw new Error('No evaluation response');
   }
-  const scores = JSON.parse(evaluationContent)
+  const scores = JSON.parse(evaluationContent);
 
   await createMetrics({
     modelName: model,
     modelProvider: getModelProvider(model),
     systemPrompt: systemPrompt,
     userPrompt: userPrompt,
-    response: content,
-    modelType: "chat",
-    modelVersion: "1.0",
-    modelConfig: "default",
+    modelResponse: content,
+    modelType: 'chat',
+    modelVersion: '1.0',
+    modelConfig: 'default',
     expectedOutput: expectedOutput,
     relevanceScore: scores.relevanceScore,
     accuracyScore: scores.accuracyScore,
@@ -269,27 +461,22 @@ async function evaluateResponse(
     evaluationFeedback: scores.evaluationFeedback,
     hallucinationScore: scores.hallucinationScore,
     hallucinationFeedback: scores.hallucinationFeedback,
-    testType: document ? "document" : "prompt",
+    testType: document ? 'document' : 'prompt',
     user: {
       connect: {
-        id: userId
-      }
-    }
-  })
+        id: userId,
+      },
+    },
+  });
 
   return JSON.parse(evaluationContent);
 }
-//   catch (error) {
-//     console.error('Error in searchSimilar:', error)
-//     throw error
-//   }
-// }
 
 function getModelProvider(model: string): string {
   const providers: Record<string, string> = {
-    "mixtral-8x7b-32768": "Groq",
-    "gpt-3.5-turbo": "OpenAI",
-    "gemini-1.5-flash": "Gemini"
-  }
-  return providers[model] || "Unknown"
+    'mixtral-8x7b-32768': 'Groq',
+    'gpt-3.5-turbo': 'OpenAI',
+    'gemini-1.5-flash': 'Gemini',
+  };
+  return providers[model] || 'Unknown';
 }

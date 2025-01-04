@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid'
 import pdf from 'pdf-parse/lib/pdf-parse'
 
 export async function POST(req: Request) {
-  console.log("PDF Upload endpoint hit")
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File

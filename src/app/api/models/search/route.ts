@@ -39,28 +39,7 @@ export async function POST(req: Request) {
         await writer.close();
       }
     })();
-
-    // const results = await searchSimilar(
-    //   systemPrompt,
-    //   userPrompt,
-    //   expectedOutput,
-    //   model,
-    //   document,
-    //   userId,
-    // )
-
-    // if (results === "no document found.") {
-    //   return NextResponse.json({
-    //     detail: "Please upload a document to search.",
-    //     result: null
-    //   })
-    //   // throw new Error('No search results found')
-    // }
-
-    // return NextResponse.json({
-    //   detail: "Search completed successfully",
-    //   result: results
-    // })
+    
     return new Response(stream.readable, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',

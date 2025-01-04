@@ -1,13 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import {
-  ClerkProvider,
-  // SignInButton,
-  // SignedIn,
-  // SignedOut,
-  // UserButton,
-} from '@clerk/nextjs';
-// import { useAuth } from '@/hooks/useAuth';
+import { ClerkProvider } from '@clerk/nextjs';
 import { AuthProvider } from '@/components/AuthProvider';
 import './globals.css';
 
@@ -31,8 +24,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // useAuth();
-
   return (
     <ClerkProvider>
       <AuthProvider>
@@ -40,12 +31,6 @@ export default function RootLayout({
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           >
-            {/* <SignedOut>
-              <SignInButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn> */}
             {children}
           </body>
         </html>
