@@ -5,7 +5,7 @@ import { Groq } from 'groq-sdk';
 import { DocumentMetadata, EvaluationResult } from './types';
 import { createMetrics } from '../metrics';
 
-const STREAM_DELAY = 30;
+const STREAM_DELAY = 40;
 const timeoutPromise = new Promise((_, reject) => {
   setTimeout(() => reject(new Error('Request timeout')), 50000);
 });
