@@ -9,6 +9,7 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function Home() {
   const tableHeadClasses = 'w-[80px] px-1 py-1 text-xs';
+  const modelResponseClasses = 'w-1/3 border-4 rounded-lg border-blue-500 shadow-md shadow-blue-500/50 hover:shadow-xl transition-shadow duration-300';
   const {
     systemPrompt,
     setSystemPrompt,
@@ -143,7 +144,7 @@ export default function Home() {
         <div className='flex flex-row w-full justify-end gap-4'>
           <SignedOut>
             {/* <SignInButton /> */}
-            <SignInButton mode='modal'>
+            <SignInButton >
               <button className='bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md'>
                 Sign In
               </button>
@@ -304,7 +305,7 @@ export default function Home() {
 
         {testModel !== 'all' && streamingContent.single ? (
           // Single model view
-          <div className='w-full max-w-7xl mt-8'>
+          <div className={modelResponseClasses}>
             <div className='bg-white rounded-lg p-6 text-black text-xs'>
               <h3 className='mb-2'>
                 <span className='font-bold'>{testModel}</span> <br /> Response:
@@ -317,8 +318,8 @@ export default function Home() {
         ) : (
           <div className='flex flex-row gap-4 justify-between w-full max-w-7xl mt-8'>
             {streamingContent.mixtral && (
-              <div className='w-1/3 '>
-                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+              <div className={modelResponseClasses}>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>Mixtral-8x7b</span> <br />{' '}
                     Response:
@@ -330,8 +331,8 @@ export default function Home() {
               </div>
             )}
             {streamingContent.gpt && (
-              <div className='w-1/3'>
-                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black h-full text-xs'>
+              <div className={modelResponseClasses}>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black h-full text-xs'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>GPT-3.5</span> <br /> Response:
                   </h3>
@@ -342,8 +343,8 @@ export default function Home() {
               </div>
             )}
             {streamingContent.gemini && (
-              <div className='w-1/3'>
-                <div className='h-[60vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+              <div className={modelResponseClasses}>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>Gemini</span> <br /> Response:
                   </h3>

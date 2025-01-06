@@ -6,6 +6,8 @@ export async function POST() {
   try {
     const { userId } = await auth();
     const clerkUser = await currentUser();
+    console.log('clerkUser', clerkUser);
+    console.log('userId', userId);
 
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: userId as string }

@@ -49,6 +49,7 @@ export function useApi() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(formData),
         }
       );
@@ -69,6 +70,15 @@ export function useApi() {
         }
 
         const text = new TextDecoder().decode(value);
+
+        if (text.includes('FINAL_RESULTS:')) {
+          const [, resultsStr] = text.split('FINAL_RESULTS:');
+          const { result } = JSON.parse(resultsStr);
+          if (result) {
+            await fetchMetrics();
+          }
+          continue; // Skip adding this to streaming content
+        }
         
         if (formData.model === 'all') {
           if (text.includes('MixtralContent')) {
@@ -97,13 +107,13 @@ export function useApi() {
           }));
         }
 
-        if (text.includes('FINAL_RESULTS:')) {
-          const [, resultsStr] = text.split('FINAL_RESULTS:');
-          const { result } = JSON.parse(resultsStr);
-          if (result) {
-            await fetchMetrics();
-          }
-        }
+        // if (text.includes('FINAL_RESULTS:')) {
+        //   const [, resultsStr] = text.split('FINAL_RESULTS:');
+        //   const { result } = JSON.parse(resultsStr);
+        //   if (result) {
+        //     await fetchMetrics();
+        //   }
+        // }
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
