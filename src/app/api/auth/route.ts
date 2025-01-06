@@ -6,7 +6,7 @@ export async function POST() {
   try {
     const { userId } = await auth();
     const clerkUser = await currentUser();
-    let user;
+    // let user;
     console.log('clerkUser', clerkUser);
     console.log('userId', userId);
 
@@ -18,15 +18,28 @@ export async function POST() {
       return NextResponse.json({ user: existingUser });
     }
     
-    if (!existingUser) {
-      user = await prisma.user.create({
-        data: {
-          id: userId as string,
-          clerkId: userId as string,
-          email: clerkUser?.emailAddresses[0].emailAddress as string,
+    const user = await prisma.user.upsert({
+      where: { email: clerkUser?.emailAddresses[0].emailAddress as string },
+      update: {
+        id: userId as string,
+        clerkId: userId as string,
+        email: clerkUser?.emailAddresses[0].emailAddress as string,
       },
+      create: {
+        id: userId as string,
+        clerkId: userId as string,
+        email: clerkUser?.emailAddresses[0].emailAddress as string,
+      }
     });
-  }
+  //   if (!existingUser) {
+  //     user = await prisma.user.create({
+  //       data: {
+  //         id: userId as string,
+  //         clerkId: userId as string,
+  //         email: clerkUser?.emailAddresses[0].emailAddress as string,
+  //     },
+  //   });
+  // }
   return NextResponse.json({ user });
     
     // return NextResponse.json({ message: 'User created' });
