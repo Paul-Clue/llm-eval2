@@ -6,6 +6,9 @@ import { DocumentMetadata, EvaluationResult } from './types';
 import { createMetrics } from '../metrics';
 
 const STREAM_DELAY = 30;
+const timeoutPromise = new Promise((_, reject) => {
+  setTimeout(() => reject(new Error('Request timeout')), 50000);
+});
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
@@ -127,6 +130,99 @@ export async function searchSimilar(
         stream: true,
       });
       // content = groqResponse.choices[0]?.message?.content || null;
+      await Promise.race([
+        Promise.all([
+          streamMixtral(newSystemPrompt, userPrompt, onStream),
+          streamGPT(newSystemPrompt, userPrompt, onStream),
+          streamGemini(newSystemPrompt, userPrompt, onStream)
+        ]),
+        timeoutPromise
+      ]);
+
+      async function streamMixtral(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+        const groqResponse = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          model: 'mixtral-8x7b-32768',
+          stream: true,
+        });
+      
+        let content = '';
+        for await (const chunk of groqResponse) {
+          const text = 'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
+          if (text && onStream) {
+            await delay(STREAM_DELAY);
+            await onStream(text);
+          }
+          content += text.replace('MixtralContent', '');
+        }
+        return content;
+      }
+      
+      async function streamGPT(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+        const openaiResponse = await openai.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          model: 'gpt-3.5-turbo',
+          stream: true,
+        });
+      
+        let content = '';
+        for await (const chunk of openaiResponse) {
+          const text = 'GPTContent' + (chunk.choices[0]?.delta?.content || '');
+          if (text && onStream) {
+            await delay(STREAM_DELAY);
+            await onStream(text);
+          }
+          content += text.replace('GPTContent', '');
+        }
+        return content;
+      }
+      
+      async function streamGemini(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+        const geminiModel = genai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const geminiResponse = await geminiModel.generateContentStream([
+          systemPrompt,
+          userPrompt,
+        ]);
+      
+        let content = '';
+        for await (const chunk of geminiResponse.stream) {
+          const text = 'GeminiContent' + chunk.text();
+          if (text && onStream) {
+            await delay(STREAM_DELAY);
+            await onStream(text);
+          }
+          content += text.replace('GeminiContent', '');
+        }
+        return content;
+      }
+    
+    // async function streamMixtral(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+    //   const groqResponse = await groq.chat.completions.create({
+    //     messages: [
+    //       { role: 'system', content: systemPrompt },
+    //       { role: 'user', content: userPrompt },
+    //     ],
+    //     model: 'mixtral-8x7b-32768',
+    //     stream: true,
+    //   });
+    
+    //   let content = '';
+    //   for await (const chunk of groqResponse) {
+    //     const text = 'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
+    //     if (text && onStream) {
+    //       await delay(STREAM_DELAY);
+    //       await onStream(text);
+    //     }
+    //     content += text.replace('MixtralContent', '');
+    //   }
+    //   return content;
+    // }
       for await (const chunk of groqResponse) {
         const text = 'MixtralContent' + chunk.choices[0]?.delta?.content || '';
         if (text && onStream) {
