@@ -319,7 +319,7 @@ export default function Home() {
           <div className='flex flex-row gap-4 justify-between w-full max-w-7xl mt-8'>
             {streamingContent.mixtral && (
               <div className={modelResponseClasses}>
-                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>Mixtral-8x7b</span> <br />{' '}
                     Response:
@@ -332,7 +332,7 @@ export default function Home() {
             )}
             {streamingContent.gpt && (
               <div className={modelResponseClasses}>
-                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black h-full text-xs'>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>GPT-3.5</span> <br /> Response:
                   </h3>
@@ -344,7 +344,7 @@ export default function Home() {
             )}
             {streamingContent.gemini && (
               <div className={modelResponseClasses}>
-                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs h-full'>
+                <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs'>
                   <h3 className='mb-2'>
                     <span className='font-bold'>Gemini</span> <br /> Response:
                   </h3>
