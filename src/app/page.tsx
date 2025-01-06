@@ -89,6 +89,10 @@ export default function Home() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!testModel) {
+      alert("Please choose a model to test.")
+      return
+    }
     console.log('Form submitted');
     
     try {
