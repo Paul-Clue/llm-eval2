@@ -6,6 +6,7 @@ import { useFormState } from '../hooks/useFormState';
 import { useApi } from '../hooks/UseApi';
 import { useUIState } from '../hooks/useUIState';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { SelectedModel } from '../components/SelectedModel';
 
 export default function Home() {
   const tableHeadClasses = 'w-[80px] px-1 py-1 text-xs';
@@ -360,105 +361,7 @@ export default function Home() {
             )}
           </div>
         )}
-
-        {selectedModel && (
-          <div className='w-full max-w-7xl overflow-x-auto mt-8'>
-            <table className='min-w-fit bg-white rounded-lg text-black text-xs'>
-              <thead className='bg-gray-100'>
-                <tr>
-                  <th className={tableHeadClasses}>Model Name</th>
-                  <th className={tableHeadClasses}>Model Type</th>
-                  <th className={tableHeadClasses}>Model Provider</th>
-                  <th className={tableHeadClasses}>Model Response</th>
-                  <th className={tableHeadClasses}>Relevance Score</th>
-                  <th className={tableHeadClasses}>Accuracy Score</th>
-                  <th className={tableHeadClasses}>Clarity Score</th>
-                  <th className={tableHeadClasses}>Coherence Score</th>
-                  <th className={tableHeadClasses}>Creativity Score</th>
-                  <th className={tableHeadClasses}>Alignment Score</th>
-                  <th className={tableHeadClasses}>Evaluation Score</th>
-                  <th className={tableHeadClasses}>Evaluation</th>
-                  <th className={tableHeadClasses}>Evaluation Feedback</th>
-                  <th className={tableHeadClasses}>Hallucination Score</th>
-                  <th className={tableHeadClasses}>Hallucination Feedback</th>
-                  <th className={tableHeadClasses}>Test Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {metrics.map((metric: Metric, index: number) => (
-                  <tr key={index}>
-                    {[
-                      'modelName',
-                      'modelType',
-                      'modelProvider',
-                      'modelResponse',
-                      'relevanceScore',
-                      'accuracyScore',
-                      'clarityScore',
-                      'coherenceScore',
-                      'creativityScore',
-                      'alignmentScore',
-                      'evaluationScore',
-                      'evaluation',
-                      'evaluationFeedback',
-                      'hallucinationScore',
-                      'hallucinationFeedback',
-                      'testType',
-                    ].map((key) => (
-                      <td
-                        key={key}
-                        className='border px-4 py-2 max-w-[50px] truncate relative cursor-pointer hover:bg-blue-100 transition-all duration-200'
-                        onClick={() =>
-                          setSelectedCell(
-                            selectedCell === `metric-${index}-${key}`
-                              ? null
-                              : `metric-${index}-${key}`
-                          )
-                        }
-                      >
-                        <span className='truncate block'>
-                          {typeof metric[key as keyof Metric] === 'number'
-                            ? (metric[key as keyof Metric] as number).toFixed(2)
-                            : metric[key as keyof Metric]}
-                        </span>
-
-                        {selectedCell === `metric-${index}-${key}` && (
-                          <div
-                            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 h-full w-full'
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className='bg-white text-black p-6 rounded-lg shadow-lg max-w-[800px] max-h-[80vh] overflow-y-auto m-4'>
-                              <div className='flex justify-between items-start mb-4'>
-                                <h3 className='font-bold text-lg'>
-                                  {key
-                                    .replace(/([A-Z])/g, ' $1')
-                                    .replace(/^./, (str) => str.toUpperCase())}
-                                </h3>
-                                <button
-                                  onClick={() => setSelectedCell(null)}
-                                  className='text-gray-500 hover:text-gray-700'
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                              <div className='whitespace-pre-wrap'>
-                                {typeof metric[key as keyof Metric] === 'number'
-                                  ? (
-                                      metric[key as keyof Metric] as number
-                                    ).toFixed(2)
-                                  : metric[key as keyof Metric]}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <SelectedModel metrics={metrics} selectedModel={selectedModel} />
 
         {/* section: Table */}
         {isLoading && (
