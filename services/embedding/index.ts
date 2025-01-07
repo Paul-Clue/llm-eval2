@@ -7,7 +7,7 @@ import { createMetrics } from '../metrics';
 
 const STREAM_DELAY = 40;
 const timeoutPromise = new Promise((_, reject) => {
-  setTimeout(() => reject(new Error('Request timeout')), 50000);
+  setTimeout(() => reject(new Error('Request timeout')), 240000);
 });
 
 const pinecone = new Pinecone({
