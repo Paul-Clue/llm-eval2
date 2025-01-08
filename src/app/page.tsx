@@ -92,6 +92,10 @@ export default function Home() {
       alert("Please choose a model to test.")
       return
     }
+    if (systemPrompt === '' || userPrompt === '' || expectedOutput === '') {
+      alert("Please fill in all fields.")
+      return
+    }
     console.log('Form submitted');
     
     try {
