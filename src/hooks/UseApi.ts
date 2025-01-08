@@ -10,7 +10,7 @@ export function useApi() {
   const [streamingContent, setStreamingContent] = useState({
     mixtral: '',
     gpt: '',
-    gemini: '',
+    llama: '',
     single: ''
   });
 
@@ -38,7 +38,7 @@ export function useApi() {
     setStreamingContent({
       mixtral: '',
       gpt: '',
-      gemini: '',
+      llama: '',
       single: ''
     });
 
@@ -77,15 +77,15 @@ export function useApi() {
           if (result) {
             await fetchMetrics();
           }
-          continue; // Skip adding this to streaming content
+          continue;
         }
         
         if (formData.model === 'all') {
-          if (text.includes('MixtralContent')) {
-            const content = text.replace('MixtralContent', '');
+          if (text.includes('llamaContent')) {
+            const content = text.replace('llamaContent', '');
             setStreamingContent(prev => ({
               ...prev,
-              mixtral: prev.mixtral + content
+              llama: prev.llama + content
             }));
           } else if (text.includes('GPTContent')) {
             const content = text.replace('GPTContent', '');
@@ -93,11 +93,11 @@ export function useApi() {
               ...prev,
               gpt: prev.gpt + content
             }));
-          } else if (text.includes('GeminiContent')) {
-            const content = text.replace('GeminiContent', '');
+          } else if (text.includes('MixtralContent')) {
+            const content = text.replace('MixtralContent', '');
             setStreamingContent(prev => ({
               ...prev,
-              gemini: prev.gemini + content
+              mixtral: prev.mixtral + content
             }));
           }
         } else {

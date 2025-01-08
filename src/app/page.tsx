@@ -274,7 +274,7 @@ export default function Home() {
                 <option value='all'>All Models</option>
                 <option value='mixtral-8x7b-32768'>Mixtral-8x7b</option>
                 <option value='gpt-3.5-turbo'>GPT-3.5</option>
-                <option value='gemini-1.5-flash'>Gemini</option>
+                <option value='llama-3.3-70b-versatile'>llama-3.3-70b-versatile</option>
               </select>
             </div>
             <button
@@ -345,14 +345,14 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {streamingContent.gemini && (
+            {streamingContent.llama && (
               <div className={modelResponseClasses}>
                 <div className='h-[50vh] overflow-y-auto bg-white rounded-lg p-6 text-black text-xs'>
                   <h3 className='mb-2'>
-                    <span className='font-bold'>Gemini</span> <br /> Response:
+                    <span className='font-bold'>llama</span> <br /> Response:
                   </h3>
                   <div className='whitespace-pre-wrap'>
-                    {streamingContent.gemini}
+                    {streamingContent.llama}
                   </div>
                 </div>
               </div>

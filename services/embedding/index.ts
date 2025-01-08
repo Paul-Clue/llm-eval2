@@ -1,11 +1,11 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAI } from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+// import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Groq } from 'groq-sdk';
 import { DocumentMetadata, EvaluationResult } from './types';
 import { createMetrics } from '../metrics';
 
-const STREAM_DELAY = 40;
+const STREAM_DELAY = 70;
 const timeoutPromise = new Promise((_, reject) => {
   setTimeout(() => reject(new Error('Request timeout')), 240000);
 });
@@ -18,7 +18,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
-const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY!,
 });
@@ -78,7 +78,7 @@ export async function searchSimilar(
     if (model === 'all') {
       let MixtralContent: string | null = null;
       let GPTContent: string | null = null;
-      let GeminiContent: string | null = null;
+      let llamaContent: string | null = null;
 
       if (document) {
         const queryEmbedding = await openai.embeddings.create({
@@ -121,25 +121,21 @@ export async function searchSimilar(
       `;
       }
 
-      const groqResponse = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: newSystemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        model: 'mixtral-8x7b-32768',
-        stream: true,
-      });
       // content = groqResponse.choices[0]?.message?.content || null;
       await Promise.race([
         Promise.all([
           streamMixtral(newSystemPrompt, userPrompt, onStream),
           streamGPT(newSystemPrompt, userPrompt, onStream),
-          streamGemini(newSystemPrompt, userPrompt, onStream)
+          streamLlama(newSystemPrompt, userPrompt, onStream),
         ]),
-        timeoutPromise
+        timeoutPromise,
       ]);
 
-      async function streamMixtral(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+      async function streamMixtral(
+        systemPrompt: string,
+        userPrompt: string,
+        onStream?: (chunk: string) => Promise<void>
+      ) {
         const groqResponse = await groq.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
@@ -148,10 +144,11 @@ export async function searchSimilar(
           model: 'mixtral-8x7b-32768',
           stream: true,
         });
-      
+
         let content = '';
         for await (const chunk of groqResponse) {
-          const text = 'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
+          const text =
+            'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
           if (text && onStream) {
             await delay(STREAM_DELAY);
             await onStream(text);
@@ -160,8 +157,12 @@ export async function searchSimilar(
         }
         return content;
       }
-      
-      async function streamGPT(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+
+      async function streamGPT(
+        systemPrompt: string,
+        userPrompt: string,
+        onStream?: (chunk: string) => Promise<void>
+      ) {
         const openaiResponse = await openai.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
@@ -170,7 +171,7 @@ export async function searchSimilar(
           model: 'gpt-3.5-turbo',
           stream: true,
         });
-      
+
         let content = '';
         for await (const chunk of openaiResponse) {
           const text = 'GPTContent' + (chunk.choices[0]?.delta?.content || '');
@@ -182,47 +183,82 @@ export async function searchSimilar(
         }
         return content;
       }
-      
-      async function streamGemini(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
-        const geminiModel = genai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const geminiResponse = await geminiModel.generateContentStream([
-          systemPrompt,
-          userPrompt,
-        ]);
-      
+
+      // async function streamGemini(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+      //   const geminiModel = genai.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
+      //   const geminiResponse = await geminiModel.generateContentStream([
+      //     systemPrompt,
+      //     userPrompt,
+      //   ]);
+
+      //   let content = '';
+      //   for await (const chunk of geminiResponse.stream) {
+      //     const text = 'GeminiContent' + chunk.text();
+      //     if (text && onStream) {
+      //       await delay(STREAM_DELAY);
+      //       await onStream(text);
+      //     }
+      //     content += text.replace('GeminiContent', '');
+      //   }
+      //   return content;
+      // }
+      async function streamLlama(
+        systemPrompt: string,
+        userPrompt: string,
+        onStream?: (chunk: string) => Promise<void>
+      ) {
+        const groqResponse2 = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          model: 'llama-3.3-70b-versatile',
+          stream: true,
+        });
+
         let content = '';
-        for await (const chunk of geminiResponse.stream) {
-          const text = 'GeminiContent' + chunk.text();
+        for await (const chunk of groqResponse2) {
+          const text =
+            'llamaContent' + (chunk.choices[0]?.delta?.content || '');
           if (text && onStream) {
             await delay(STREAM_DELAY);
             await onStream(text);
           }
-          content += text.replace('GeminiContent', '');
+          content += text.replace('llamaContent', '');
         }
         return content;
       }
-    
-    // async function streamMixtral(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
-    //   const groqResponse = await groq.chat.completions.create({
-    //     messages: [
-    //       { role: 'system', content: systemPrompt },
-    //       { role: 'user', content: userPrompt },
-    //     ],
-    //     model: 'mixtral-8x7b-32768',
-    //     stream: true,
-    //   });
-    
-    //   let content = '';
-    //   for await (const chunk of groqResponse) {
-    //     const text = 'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
-    //     if (text && onStream) {
-    //       await delay(STREAM_DELAY);
-    //       await onStream(text);
-    //     }
-    //     content += text.replace('MixtralContent', '');
-    //   }
-    //   return content;
-    // }
+
+      // async function streamMixtral(systemPrompt: string, userPrompt: string, onStream?: (chunk: string) => Promise<void>) {
+      //   const groqResponse = await groq.chat.completions.create({
+      //     messages: [
+      //       { role: 'system', content: systemPrompt },
+      //       { role: 'user', content: userPrompt },
+      //     ],
+      //     model: 'mixtral-8x7b-32768',
+      //     stream: true,
+      //   });
+
+      //   let content = '';
+      //   for await (const chunk of groqResponse) {
+      //     const text = 'MixtralContent' + (chunk.choices[0]?.delta?.content || '');
+      //     if (text && onStream) {
+      //       await delay(STREAM_DELAY);
+      //       await onStream(text);
+      //     }
+      //     content += text.replace('MixtralContent', '');
+      //   }
+      //   return content;
+      // }
+      const groqResponse = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: newSystemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: 'mixtral-8x7b-32768',
+        stream: true,
+      });
+
       for await (const chunk of groqResponse) {
         const text = 'MixtralContent' + chunk.choices[0]?.delta?.content || '';
         if (text && onStream) {
@@ -255,25 +291,43 @@ export async function searchSimilar(
         GPTContent = (GPTContent || '') + gptText;
       }
 
-      const geminiModel = genai.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-      });
-      const geminiResponse = await geminiModel.generateContentStream([
-        newSystemPrompt,
-        userPrompt,
-      ]);
+      // const geminiModel = genai.getGenerativeModel({
+      //   model: 'gemini-1.5-flash-002',
+      // });
+      // const geminiResponse = await geminiModel.generateContentStream([
+      //   newSystemPrompt,
+      //   userPrompt,
+      // ]);
 
-      for await (const chunk of geminiResponse.stream) {
-        const text = 'GeminiContent' + chunk.text();
+      // for await (const chunk of geminiResponse.stream) {
+      //   const text = 'GeminiContent' + chunk.text();
+      //   if (text && onStream) {
+      //     await delay(STREAM_DELAY);
+      //     await onStream(text);
+      //   }
+      //   const geminiText = text.replace('GeminiContent', '');
+      //   GeminiContent = (GeminiContent || '') + geminiText;
+      // }
+      const groqResponse2= await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: newSystemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: 'llama-3.3-70b-versatile',
+        stream: true,
+      });
+
+      for await (const chunk of groqResponse2) {
+        const text = 'llamaContent' + chunk.choices[0]?.delta?.content || '';
         if (text && onStream) {
           await delay(STREAM_DELAY);
           await onStream(text);
         }
-        const geminiText = text.replace('GeminiContent', '');
-        GeminiContent = (GeminiContent || '') + geminiText;
+        const llamaText = text.replace('llamaContent', '');
+        llamaContent = (llamaContent || '') + llamaText;
       }
 
-      if (!MixtralContent || !GPTContent || !GeminiContent) {
+      if (!MixtralContent || !GPTContent || !llamaContent) {
         console.log('ALL MODELS: No response from model');
       }
 
@@ -299,13 +353,13 @@ export async function searchSimilar(
           userId
         );
       }
-      if (GeminiContent) {
+      if (llamaContent) {
         await evaluateResponse(
           systemPrompt,
           userPrompt,
           expectedOutput,
-          GeminiContent,
-          'gemini-1.5-flash',
+          llamaContent,
+          'llama-3.3-70b-versatile',
           document,
           userId
         );
@@ -414,30 +468,58 @@ export async function searchSimilar(
           }
           break;
 
-        case 'gemini-1.5-flash':
-          try {
-            const geminiModel = genai.getGenerativeModel({
-              model: 'gemini-1.5-flash',
-            });
-            const geminiResponse = await geminiModel.generateContentStream([
-              newSystemPrompt,
-              userPrompt,
-            ]);
+        // case 'gemini-1.5-flash-002':
+        //   try {
+        //     const geminiModel = genai.getGenerativeModel({
+        //       model: 'gemini-1.5-flash-002',
+        //     });
+        //     const geminiResponse = await geminiModel.generateContentStream([
+        //       newSystemPrompt,
+        //       userPrompt,
+        //     ]);
 
-            for await (const chunk of geminiResponse.stream) {
-              const text = chunk.text();
+        //     for await (const chunk of geminiResponse.stream) {
+        //       const text = chunk.text();
+        //       if (text && onStream) {
+        //         await onStream(text);
+        //       }
+        //       content = (content || '') + text;
+        //     }
+
+        //     if (!content) {
+        //       console.error('No content received from Gemini-1.5-flash model');
+        //       content = 'Model failed to generate a response.';
+        //     }
+        //   } catch (error) {
+        //     console.error('Gemini-1.5-flash-002 model error:', error);
+        //     throw error;
+        //   }
+        case 'llama-3.3-70b-versatile':
+          try {
+            const groqResponse = await groq.chat.completions.create({
+              messages: [
+                { role: 'system', content: newSystemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              model: 'llama-3.3-70b-versatile',
+              stream: true,
+            });
+
+            for await (const chunk of groqResponse) {
+              const text = chunk.choices[0]?.delta?.content || '';
               if (text && onStream) {
+                await delay(STREAM_DELAY);
                 await onStream(text);
               }
               content = (content || '') + text;
             }
 
             if (!content) {
-              console.error('No content received from Gemini-1.5-flash model');
+              console.error('No content received from llama model');
               content = 'Model failed to generate a response.';
             }
           } catch (error) {
-            console.error('Gemini-1.5-flash model error:', error);
+            console.error('llama model error:', error);
             throw error;
           }
 
@@ -572,7 +654,7 @@ function getModelProvider(model: string): string {
   const providers: Record<string, string> = {
     'mixtral-8x7b-32768': 'Groq',
     'gpt-3.5-turbo': 'OpenAI',
-    'gemini-1.5-flash': 'Gemini',
+    'llama-3.3-70b-versatile': 'Groq',
   };
   return providers[model] || 'Unknown';
 }
